@@ -4,6 +4,8 @@ from numpy import number
 from dataclasses import dataclass, field
 from .intervals_functions import cut_interval, merge_interval
 
+# TODO delete when adding one by one (if overlaps than delete, merge and reinsert until reach a leaf)
+
 
 @dataclass
 class IntervalTreeNode:

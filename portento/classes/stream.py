@@ -9,11 +9,15 @@ from portento.classes.streamdict import StreamDict
 from portento.utils import Link, IntervalTree
 
 
+# TODO __contains__
+# TODO use a networkx graph, not a StreamDict
+# TODO put all correctness checks here (?)
+
 class Stream:
 
     def __init__(self, links: Optional[Iterable[Link]] = list(), int_typ=type(None), **kwargs):
-        self._tree = StreamTree(links)
         self._dict = StreamDict(links, int_typ, **kwargs)
+        self._tree = StreamTree(links)
         self._time_instants = IntervalTree(map(lambda l: l.interval, links))
 
     @property

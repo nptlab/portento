@@ -127,16 +127,11 @@ def filter_stream(stream: Stream,
                           filter_by_time(stream.tree_view, time_filter))
 
     elif isinstance(time_filter, NoFilter) or first == 'node':  # node first slice
-        all_iterables = list()
-        for u, adj in stream.edges.items():
-            if node_filter(u):
-                for v, links in adj.items():
-                    if node_filter(v):
-                        all_iterables.append(
-                            map(lambda x: Link(*x), zip(filter_by_time(links._intervals, time_filter), repeat(u), repeat(v))))
-
-        for link in merge(*all_iterables):
-            yield link
+        yield from merge(*(map(lambda x: Link(*x),
+                               zip(filter_by_time(links._intervals, time_filter), repeat(u), repeat(v)))
+                           for u, adj in stream.edges.items() if node_filter(u)
+                           for v, links in adj.items() if node_filter(v)
+                           ))
     else:
         raise Exception
 
@@ -155,4 +150,5 @@ new_links = [Link(Interval(1.0, 3.0, 'both'), 'a', 'b'),
 
 s = Stream(new_links)
 print(
-    [i for i in filter_stream(s, NodeFilter(lambda x: x in ['a', 'b', 'c']), TimeFilter([Interval(4.0, 6.0, 'both')]), 'node')])
+    [i for i in
+     filter_stream(s, NodeFilter(lambda x: x in ['a', 'b', 'c']), TimeFilter([Interval(4.0, 6.0, 'both')]), 'node')])

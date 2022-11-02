@@ -4,6 +4,7 @@ from numpy import number
 from dataclasses import dataclass, field
 from .intervals_functions import cut_interval, merge_interval
 
+
 # TODO delete when adding one by one (if overlaps than delete, merge and reinsert until reach a leaf)
 
 
@@ -252,6 +253,13 @@ class IntervalTree:
             self.root.add(datum_node)
         else:
             self.root = datum_node
+
+    def all_overlaps(self, interval: Interval):
+        if interval:
+            node = self.__class__()._create_node(interval)
+            return IntervalTree(self.root.all_overlaps(node, full_node=True))
+        else:
+            return self
 
     def _delete_overlapping_intervals(self, datum: value_type):
 

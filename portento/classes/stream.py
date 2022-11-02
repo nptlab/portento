@@ -9,8 +9,6 @@ from portento.classes.streamdict import StreamDict
 from portento.utils import Link, IntervalTree
 
 
-# TODO __contains__
-# TODO use a networkx graph, not a StreamDict
 # TODO put all correctness checks here (?)
 
 class Stream:
@@ -46,6 +44,9 @@ class Stream:
 
     def __iter__(self):
         return iter(self.tree_view)
+
+    def __contains__(self, item):
+        return self.dict_view.__contains__(item)
 
     def __getitem__(self, item):
         return self.dict_view.__getitem__(item)

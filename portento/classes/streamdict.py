@@ -54,6 +54,9 @@ class StreamDict:
         for link in merge(*(stream for edges in self.edges.values() for stream in edges.values())):
             yield link
 
+    def __contains__(self, item):
+        return item in self.nodes
+
     def __getitem__(self, item):
         """Get links in a sorted list.
 

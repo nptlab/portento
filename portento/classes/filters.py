@@ -5,6 +5,7 @@ from heapq import merge
 from copy import deepcopy
 from itertools import repeat
 from sortedcontainers.sortedlist import SortedList
+from heapq import heapify
 
 from portento.classes.streamdict import StreamDict
 from portento.classes.stream import Stream
@@ -15,7 +16,7 @@ from portento.utils import IntervalTree, IntervalTreeNode, Link, cut_interval
 class Filter:
 
     @abstractmethod
-    def __init__(self):
+    def __init__(self, *args):
         pass
 
     @abstractmethod
@@ -120,15 +121,15 @@ def filter_by_nodes(stream_dict: StreamDict, node_filter: Union[NoFilter, NodeFi
 
 
 def filter_stream(stream: Stream,
-                  node_filter: Union[NoFilter, NodeFilter] = NoFilter,
-                  time_filter: Union[NoFilter, TimeFilter] = NoFilter,
+                  node_filter: Union[NoFilter, NodeFilter] = NoFilter(),
+                  time_filter: Union[NoFilter, TimeFilter] = NoFilter(),
                   first='time'):
 
-    if isinstance(node_filter, NoFilter) or first == 'time':  # time first slice
+    if first == 'time':
         yield from filter(lambda l: node_filter(l.u) and node_filter(l.v),
                           filter_by_time(stream.tree_view, time_filter))
 
-    elif isinstance(time_filter, NoFilter) or first == 'node':  # node first slice
+    elif first == 'node':
         yield from merge(*(map(lambda x: Link(*x),
                                zip(filter_by_time(links.interval_tree, time_filter), repeat(u), repeat(v)))
                            for u, adj in stream.edges.items() if node_filter(u)

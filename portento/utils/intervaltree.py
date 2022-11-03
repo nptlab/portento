@@ -222,24 +222,6 @@ class IntervalTree:
         else:
             return 0
 
-    def time_based_slice(self, interval: Optional[Interval] = None):
-        """Return an IntervalTree
-
-        Parameters
-        ----------
-        interval : Interval
-            The interval required.
-
-        Returns
-        -------
-        interval_tree : IntervalTree
-        """
-        if interval:
-            node = self.__class__()._create_node(interval)
-            return IntervalTree(self.root.all_overlaps(node))
-        else:
-            return self
-
     def add(self, datum: value_type):
         """Add an interval to the tree_view, merging it with the overlapping intervals
 

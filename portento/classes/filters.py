@@ -2,10 +2,8 @@ from abc import abstractmethod
 from pandas import Interval
 from typing import List, Callable, Union
 from heapq import merge
-from copy import deepcopy
 from itertools import repeat
 from sortedcontainers.sortedlist import SortedList
-from heapq import heapify
 
 from portento.classes.streamdict import StreamDict
 from portento.classes.stream import Stream
@@ -14,6 +12,9 @@ from portento.utils import IntervalTree, IntervalTreeNode, Link, cut_interval
 
 
 class Filter:
+    """Abstract class for link filters.
+
+    """
 
     @abstractmethod
     def __init__(self, *args):
@@ -29,6 +30,9 @@ class Filter:
 
 
 class NoFilter(Filter):
+    """A links filter that accepts any link.
+
+    """
     def __init__(self):
         pass
 
@@ -40,6 +44,10 @@ class NoFilter(Filter):
 
 
 class TimeFilter(Filter):
+    """A links filter that tests the interval.
+    A link is kept if the interval has an overlapping in the user-defined intervaltree.
+    __init__ takes into input a list of intervals.
+    """
     def __init__(self, list_of_intervals: List[Interval]):
         self._interval_tree = IntervalTree(list_of_intervals)
 
@@ -79,6 +87,10 @@ class TimeFilter(Filter):
 
 
 class NodeFilter(Filter):
+    """A links filter that tests on nodes.
+    Links with both nodes that respect the condition are kept.
+    __init__ takes into input a boolean function over the nodes.
+    """
     def __init__(self, filter_nodes: Callable):
         self._filter = filter_nodes
 

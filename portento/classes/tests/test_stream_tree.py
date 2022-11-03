@@ -60,18 +60,3 @@ class TestStreamTree:
         tree = StreamTree(links)
         tree.add(new_link)
         assert list(tree) == sorted(result)
-
-
-class TestTimeSlice:
-
-    @pytest.mark.parametrize('interval', [
-        Interval(3, 6),
-        Interval(2, 9),
-        Interval(10, 20),
-        Interval(0, 3)
-    ])
-    def test_time_slice(self, links, links_2, interval):
-        out_links = lambda list_links: sorted(list(map(lambda l: Link(cut_interval(l.interval, interval), l.u, l.v),
-                                                       filter(lambda l: l.interval.overlaps(interval), list_links))))
-        assert list(StreamTree(links).time_based_slice(interval)) == out_links(links)
-        assert list(StreamTree(links_2).time_based_slice(interval)) == out_links(links_2)

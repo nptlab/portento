@@ -101,14 +101,3 @@ class TestBinarySearchTree:
 
                 assert node.full_interval == full
                 assert node.time_instants == all_instants
-
-    @pytest.mark.parametrize('selector', [
-        Interval(3, 10),
-        Interval(3, 10, 'left'),
-        Interval(3, 20),
-        Interval(3, 51, 'left')
-    ])
-    def test_time_based_slice(self, tree, intervals, selector):
-        assert list(tree.time_based_slice(selector)) == sorted(list(
-            map(lambda x: cut_interval(x, selector),
-                filter(lambda x: x.overlaps(selector), intervals))))

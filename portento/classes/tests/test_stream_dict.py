@@ -72,19 +72,3 @@ class TestStreamDict:
         s = StreamDict(links_2)
         s.add(new_link)
         assert [link for link in s.edges[node_1][node_2]] == result
-
-
-class TestNodeSlice:
-
-    def test_node_slice(self, links):
-        s = StreamDict(links)
-        chosen_nodes = ['b', 'c', 'd']
-        s_sliced = s.node_based_slice(chosen_nodes)
-        assert sorted(s_sliced.nodes.keys()) == chosen_nodes
-
-        for node in chosen_nodes:
-            # TODO ask if this is ok
-            assert s_sliced.nodes[node] == s.nodes[node]
-
-        assert [[i.interval for i in l] for _, l in s_sliced.edges['b'].items()] == \
-               [[Interval(6.0, 9.0, 'both')], [Interval(2.0, 3.0, 'both')]]

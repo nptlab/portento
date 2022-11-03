@@ -54,23 +54,6 @@ class StreamTree(IntervalTree):
     """
     value_type = Link
 
-    def time_based_slice(self, interval: Optional[Interval] = None):
-        """
-
-        Parameters
-        ----------
-        interval
-
-        Returns
-        -------
-
-        """
-        if interval and self._root:
-            node = self.__class__()._create_node(interval)
-            return StreamTree(self._root.all_overlaps(node))
-        else:
-            return StreamTree()
-
     @classmethod
     def _create_node(cls, data):
         # data is assumed to be a link

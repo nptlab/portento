@@ -6,6 +6,7 @@ from pandas import Interval
 from .intervaltree import IntervalTree
 from .sortstreamnodes import sort_nodes
 
+
 # TODO can give nodes information using lambdas!!!
 
 
@@ -67,6 +68,10 @@ class IntervalContainer:
             return iter(Link(interval, u, v) for interval in self._intervals)
         else:
             return iter(self._intervals)
+
+    @property
+    def interval_tree(self):
+        return self._intervals
 
     @property
     def length(self):

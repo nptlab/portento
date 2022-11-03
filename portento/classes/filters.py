@@ -4,6 +4,7 @@ from typing import List, Callable, Union
 from heapq import merge
 from copy import deepcopy
 from itertools import repeat
+from sortedcontainers.sortedlist import SortedList
 
 from portento.classes.streamdict import StreamDict
 from portento.classes.stream import Stream
@@ -91,9 +92,9 @@ class NodeFilter(Filter):
         return self._filter(node)
 
 
-def filter_by_time(tree_view: StreamTree, time_filter: Union[NoFilter, TimeFilter]):
-    if tree_view.root:
-        return iter(_filter_node_by_time(tree_view.root, time_filter))
+def filter_by_time(stream_tree: StreamTree, time_filter: Union[NoFilter, TimeFilter]):
+    if stream_tree.root:
+        return iter(SortedList(_filter_node_by_time(stream_tree.root, time_filter)))
     else:
         return iter()
 
@@ -103,7 +104,7 @@ def _filter_node_by_time(node: Union[StreamTreeNode, IntervalTreeNode], time_fil
         if node.left:
             yield from _filter_node_by_time(node.left, time_filter)
         if time_filter(node.value):
-            for interval in time_filter[node.value]:
+            for interval in (time_filter[node.value]):
                 if isinstance(node, StreamTreeNode):
                     yield Link(interval, node.u, node.v)
                 else:
@@ -112,8 +113,8 @@ def _filter_node_by_time(node: Union[StreamTreeNode, IntervalTreeNode], time_fil
             yield from _filter_node_by_time(node.right, time_filter)
 
 
-def filter_by_nodes(dict_view: StreamDict, node_filter: Union[NoFilter, NodeFilter]):
-    for link in merge(*(stream for u, links in dict_view.edges.items() if node_filter(u)
+def filter_by_nodes(stream_dict: StreamDict, node_filter: Union[NoFilter, NodeFilter]):
+    for link in merge(*(stream for u, links in stream_dict.edges.items() if node_filter(u)
                         for v, stream in links.items() if node_filter(v))):
         yield link
 
@@ -122,6 +123,7 @@ def filter_stream(stream: Stream,
                   node_filter: Union[NoFilter, NodeFilter] = NoFilter,
                   time_filter: Union[NoFilter, TimeFilter] = NoFilter,
                   first='time'):
+
     if isinstance(node_filter, NoFilter) or first == 'time':  # time first slice
         yield from filter(lambda l: node_filter(l.u) and node_filter(l.v),
                           filter_by_time(stream.tree_view, time_filter))
@@ -133,4 +135,5 @@ def filter_stream(stream: Stream,
                            for v, links in adj.items() if node_filter(v)
                            ))
     else:
-        raise Exception
+        raise AttributeError("This method must be called with:\n a Stream, a NodeFilter, a TimeFilter and a string"
+                             " with value \'node\' or \'time\'")

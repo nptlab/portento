@@ -1,11 +1,16 @@
 from typing import Optional, Iterable, Union
 from pandas import Interval
 from numpy import number
+from enum import Enum
 from dataclasses import dataclass, field
-from .intervals_functions import cut_interval, merge_interval
+from portento.utils.intervals_functions import cut_interval, merge_interval
 
 
 # TODO delete when adding one by one (if overlaps than delete, merge and reinsert until reach a leaf)
+
+class Color(Enum):
+    RED = False
+    BLACK = True
 
 
 @dataclass
@@ -17,6 +22,7 @@ class IntervalTreeNode:
     parent: Optional['IntervalTreeNode'] = field(default=None, compare=False)
     left: Optional['IntervalTreeNode'] = field(default=None, compare=False)
     right: Optional['IntervalTreeNode'] = field(default=None, compare=False)
+    color: Color = field(default=Color.RED, init=False, compare=False)
     full_interval: Interval = field(default=None, init=False, compare=False)
     time_instants: Union[int, float, number] = field(default=None, init=False, compare=False)
 
@@ -236,6 +242,14 @@ class IntervalTree:
         else:
             self.root = datum_node
 
+    def _rb_add(self, datum: value_type):
+        datum_node = self._delete_overlapping_intervals(datum)
+        if self.root:
+            self.root.add(datum_node)
+        else:
+            self.root = datum_node
+        self._rb_insert_fixup(datum_node)
+
     def all_overlaps(self, interval: Interval):
         if interval:
             node = self.__class__()._create_node(interval)
@@ -301,6 +315,68 @@ class IntervalTree:
                 substitute.full_interval = substitute.value
             else:
                 substitute.full_interval = to_substitute.full_interval
+
+    def _left_rotate(self, node: IntervalTreeNode):
+        pivot = node.right
+        if pivot:
+            node.right = pivot.left
+            if pivot.left:
+                pivot.left.parent = node
+            pivot.parent = node.parent
+            if not node.parent:
+                self.root = pivot
+            elif node.is_left():
+                node.parent.left = pivot
+            else:
+                node.parent.right = pivot
+
+            pivot.left = node
+            node.parent = pivot
+
+    def _right_rotate(self, node: IntervalTreeNode):
+        pivot = node.left
+        if pivot:
+            node.left = pivot.right
+            if pivot.right:
+                pivot.right.parent = node
+            pivot.parent = node.parent
+            if not node.parent:
+                self.root = pivot
+            elif node.is_left():
+                node.parent.left = pivot
+            else:
+                node.parent.right = pivot
+
+            pivot.right = node
+            node.parent = pivot
+
+    def _rb_insert_fixup(self, node: IntervalTreeNode):
+        while node.parent and node.parent.color is Color.RED:
+            grandparent = node.parent.parent
+            if grandparent and node.parent.is_left():
+                uncle = grandparent.right
+                if uncle.color is Color.RED:  # case 1
+                    node.parent.color = Color.BLACK
+                    uncle.color = Color.BLACK
+                    grandparent.color = Color.RED
+                    node = grandparent
+                else:
+                    if not node.is_left():  # case 2
+                        node = node.parent
+                        self._left_rotate(node)
+                    node.parent.color = Color.BLACK  # case 3
+                    node.parent.parent.color = Color.RED
+                    self._right_rotate(node.parent.parent)
+
+            else:
+                if node.is_left():  # case 2
+                    node = node.parent
+                    self._right_rotate(node)
+                node.parent.color = Color.BLACK  # case 3
+                node.parent.parent.color = Color.RED
+                self._left_rotate(node.parent.parent)
+
+        self.root.color = Color.BLACK
 
     @classmethod
     def _create_node(cls, data):

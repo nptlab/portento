@@ -132,9 +132,6 @@ except Exception as e:
 
 print("\n* This kind of data structure offers the possibility to define node-based slices:")
 nodes = list(map(lambda x: int64(x), [9, 31, 37, 59, 65]))
-print(nodes)
-print(portento.NodeFilter(lambda x: x in nodes)(15))
-print(stream[59][:10])
 links = list(portento.filter_stream(stream,
                                     node_filter=portento.NodeFilter(lambda x: x in nodes),
                                     first='time'))

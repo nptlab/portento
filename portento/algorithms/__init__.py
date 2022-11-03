@@ -1,1 +1,1 @@
-from portento.algorithms.metrics import *
+from portento.algorithms import *

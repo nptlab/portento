@@ -9,11 +9,13 @@ from portento.classes.streamdict import StreamDict
 from portento.utils import Link, IntervalTree
 
 
+# TODO put all correctness checks here (?)
+
 class Stream:
 
     def __init__(self, links: Optional[Iterable[Link]] = list(), int_typ=type(None), **kwargs):
-        self._tree = StreamTree(links)
         self._dict = StreamDict(links, int_typ, **kwargs)
+        self._tree = StreamTree(links)
         self._time_instants = IntervalTree(map(lambda l: l.interval, links))
 
     @property
@@ -42,6 +44,9 @@ class Stream:
 
     def __iter__(self):
         return iter(self.tree_view)
+
+    def __contains__(self, item):
+        return self.dict_view.__contains__(item)
 
     def __getitem__(self, item):
         return self.dict_view.__getitem__(item)
@@ -141,75 +146,3 @@ class Stream:
         self.dict_view.add(link)
         self.tree_view.add(link)
         self.stream_presence.add(link.interval)
-
-    def node_based_slice(self, selected_nodes: Optional[Iterable[Hashable]] = None):
-        """Return the sliced stream selecting some nodes.
-
-        Parameters
-        ----------
-        selected_nodes : Iterable of nodes.
-            The nodes to keep.
-
-        Returns
-        -------
-        stream : Stream
-            The resulting sliced stream.
-
-        """
-        l = list(self.dict_view.node_based_slice(selected_nodes))
-        shuffle(l)
-        return Stream(l)
-
-    def time_based_slice(self, interval: Optional[Interval] = None):
-        """Return the sliced stream over the temporal dimension.
-
-        Parameters
-        ----------
-        interval : pandas Interval
-            Time boundaries for the output stream
-
-        Returns
-        -------
-        stream : Stream
-            The resulting sliced stream.
-
-        """
-        l = list(self.tree_view.time_based_slice(interval))
-        shuffle(l)
-        return Stream(l)
-
-    def slice(self, selected_nodes: Optional[Iterable[Hashable]] = None, interval: Optional[Interval] = None,
-              first='node'):
-        """Return the sliced stream on both the nodes and time.
-
-        Parameters
-        ----------
-        selected_nodes : Iterable of nodes to keep.
-        interval : pandas Interval
-            Time boundaries for the output stream.
-        first : str ('node' or 'time')
-            Whether to slice upon nodes or time before.
-            Choosing this value carefully may be crucial for performances.
-
-        Returns
-        -------
-        stream : Stream
-            The resulting sliced stream.
-
-        """
-
-        if selected_nodes:
-            if interval:
-                # both selected_nodes and interval are specified
-                if first == 'node':
-                    return self.node_based_slice(selected_nodes).time_based_slice(interval)
-                elif first == 'time':
-                    return self.time_based_slice(interval).node_based_slice(selected_nodes)
-            else:
-                # only selected_nodes
-                return self.node_based_slice(selected_nodes)
-        elif interval:
-            # only the interval
-            return self.time_based_slice(interval)
-        else:
-            return Stream()

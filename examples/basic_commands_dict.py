@@ -7,9 +7,12 @@ Presenting the basic commands to query a stream graph (StreamDict data structure
 """
 
 from os import path
+
+import pandas
 import pandas as pd
 import pickle
 from numpy import int64
+from random import shuffle
 
 import portento
 
@@ -29,7 +32,7 @@ def import_malawi_data_as_df():
     malawi = pd.read_csv(THIS_FILE, compression='gzip', header=0, sep=',', index_col=0)
     malawi = malawi.drop('day', axis=1)
     malawi.columns = FINAL_COLUMNS
-    malawi.t = malawi.t.apply(lambda x: pd.Interval(x, x+1, 'left'))
+    malawi.t = malawi.t.apply(lambda x: pd.Interval(x, x + 1, 'left'))
     return malawi
 
 
@@ -129,7 +132,14 @@ except Exception as e:
 
 print("\n* This kind of data structure offers the possibility to define node-based slices:")
 nodes = list(map(lambda x: int64(x), [9, 31, 37, 59, 65]))
-sliced_stream = stream.node_based_slice(nodes)
+print(nodes)
+print(portento.NodeFilter(lambda x: x in nodes)(15))
+print(stream[59][:10])
+links = list(portento.filter_stream(stream,
+                                    node_filter=portento.NodeFilter(lambda x: x in nodes),
+                                    first='time'))
+shuffle(links)
+sliced_stream = portento.Stream(links)
 print(stream[59][:10])
 print(sliced_stream[59][:10])
 

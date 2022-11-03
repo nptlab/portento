@@ -5,6 +5,9 @@ from dataclasses import dataclass, field
 from .intervals_functions import cut_interval, merge_interval
 
 
+# TODO delete when adding one by one (if overlaps than delete, merge and reinsert until reach a leaf)
+
+
 @dataclass
 class IntervalTreeNode:
     """The node class for the IntervalTree.
@@ -219,24 +222,6 @@ class IntervalTree:
         else:
             return 0
 
-    def time_based_slice(self, interval: Optional[Interval] = None):
-        """Return an IntervalTree
-
-        Parameters
-        ----------
-        interval : Interval
-            The interval required.
-
-        Returns
-        -------
-        interval_tree : IntervalTree
-        """
-        if interval:
-            node = self.__class__()._create_node(interval)
-            return IntervalTree(self.root.all_overlaps(node))
-        else:
-            return self
-
     def add(self, datum: value_type):
         """Add an interval to the tree_view, merging it with the overlapping intervals
 
@@ -250,6 +235,13 @@ class IntervalTree:
             self.root.add(datum_node)
         else:
             self.root = datum_node
+
+    def all_overlaps(self, interval: Interval):
+        if interval:
+            node = self.__class__()._create_node(interval)
+            return IntervalTree(self.root.all_overlaps(node, full_node=True))
+        else:
+            return self
 
     def _delete_overlapping_intervals(self, datum: value_type):
 

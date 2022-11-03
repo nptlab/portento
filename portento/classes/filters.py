@@ -104,7 +104,7 @@ def _filter_node_by_time(node: Union[StreamTreeNode, IntervalTreeNode], time_fil
             yield from _filter_node_by_time(node.left, time_filter)
         if time_filter(node.value):
             for interval in time_filter[node.value]:
-                if hasattr(node, 'u'):
+                if isinstance(node, StreamTreeNode):
                     yield Link(interval, node.u, node.v)
                 else:
                     yield interval

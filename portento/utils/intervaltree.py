@@ -263,12 +263,13 @@ class IntervalTree:
             y = node.right.minimum()
             y_original_color = y.color
             child = y.right
-            if y.parent == node:
+            if y.parent == node and child:
                 child.parent = y
             else:
                 self._transplant(y, child)
                 y.right = node.right
-                y.right.parent = y
+                if y.right:
+                    y.right.parent = y
 
             self._transplant(node, y)
             y.left = node.left
@@ -413,62 +414,72 @@ class IntervalTree:
         self.root.color = Color.BLACK
 
     def _rb_delete_fixup(self, node: IntervalTreeNode):
-        while node != self.root and node.color.value:
+        while node and node != self.root and node.color.value:
             if node.is_left():  # node is a left child
                 brother = node.parent.right
-                if brother and not brother.color.value:  # case 1: brother is RED
+                if brother and not brother.color.value:
+                    # case 1: brother is RED
                     brother.color = Color.BLACK
                     node.parent.color = Color.RED
                     self._left_rotate(node.parent)
                     brother = node.parent.right
 
                 if brother and (not brother.left or brother.left.color.value) and \
-                    (not brother.right or brother.right.color.value):  # case 2: brother is black with both children
-                    # black
+                    (not brother.right or brother.right.color.value):
+                    # case 2: brother is black with both children black
                     brother.color = Color.RED
                     node = node.parent
                 else:
-                    if not brother.right or brother.right.color.value:  # case 3: brother is black with right child
-                        # black and left child red
+                    if brother and (not brother.right or brother.right.color.value):
+                        # case 3: brother is black with right child  black and left child red
                         brother.left.color = Color.BLACK
                         brother.color = Color.RED
                         self._right_rotate(brother)
                         brother = node.parent.right
                     # case 4: brother is black with right child red
-                    brother.color = node.parent.color
-                    node.parent.color = Color.BLACK
-                    node.right.color = Color.BLACK
+                    if brother and node.parent:
+                        brother.color = node.parent.color
+                    if node.parent:
+                        node.parent.color = Color.BLACK
+                    if brother and brother.right:
+                        brother.right.color = Color.BLACK
+
                     self._left_rotate(node.parent)
                     node = self.root
 
             else:  # node is a right child
                 brother = node.parent.left
-                if brother and not brother.color.value:  # case 1: brother is RED
+                if brother and not brother.color.value:
+                    # case 1: brother is RED
                     brother.color = Color.BLACK
                     node.parent.color = Color.RED
                     self._right_rotate(node.parent)
                     brother = node.parent.left
 
                 if brother and (not brother.right or brother.right.color.value) and \
-                    (not brother.left or brother.left.color.value):  # case 2: brother is black with both children
-                    # black
+                    (not brother.left or brother.left.color.value):
+                    # case 2: brother is black with both children black
                     brother.color = Color.RED
                     node = node.parent
                 else:
-                    if not brother.left or brother.left.color.value:  # case 3: brother is black with left child
-                        # black and right child red
+                    if brother and (not brother.left or brother.left.color.value):
+                        # case 3: brother is black with left child  black and right child red
                         brother.right.color = Color.BLACK
                         brother.color = Color.RED
                         self._left_rotate(brother)
                         brother = node.parent.left
                     # case 4: brother is black with right child red
-                    brother.color = node.parent.color
-                    node.parent.color = Color.BLACK
-                    node.left.color = Color.BLACK
+                    if brother and node.parent:
+                        brother.color = node.parent.color
+                    if node.parent:
+                        node.parent.color = Color.BLACK
+                    if brother and brother.left:
+                        brother.left.color = Color.BLACK
                     self._right_rotate(node.parent)
                     node = self.root
 
-        node.color = Color.BLACK
+        if node:
+            node.color = Color.BLACK
 
     @classmethod
     def _create_node(cls, data):

@@ -50,6 +50,18 @@ def q_black_hidden(node, node_next, q):
             raise Exception
 
 
+def find(node, interval):
+    if node:
+        if node.value == interval:
+            return node
+        elif node.value > interval:
+            return find(node.left, interval)
+        else:
+            return find(node.right, interval)
+
+    return None  # this will never happen
+
+
 class TestRedBlackTree:
 
     @pytest.mark.parametrize('intervals', [
@@ -80,15 +92,25 @@ class TestRedBlackTree:
         assert tree.root.right.right.value == intervals['gamma']
 
     @pytest.mark.parametrize('s', list(range(20)))
-    def test_properties(self, s):
+    def test_add_delete(self, s):
         random.seed(s)
         n = 100
-
-        intervals = random.sample([Interval(x, x+1) for x in range(n)], n)
+        intervals = random.sample([Interval(x, x + 1) for x in range(n)], n)
         tree = IntervalTree()
+
         for interval in intervals:
             tree._rb_add(interval)
             assert black_root(tree)
             assert red_has_black_child(tree.root)
             assert same_q_black_paths(tree.root)
-            assert height(tree.root) <= 2*log2(n+1)
+            assert height(tree.root) <= 2 * log2(n + 1)
+
+        intervals = random.sample(intervals, n)
+
+        for interval in intervals:
+            node = find(tree.root, interval)
+            tree._rb_delete(node)
+            assert black_root(tree)
+            assert red_has_black_child(tree.root)
+            assert same_q_black_paths(tree.root)
+            assert height(tree.root) <= 2 * log2(n + 1)

@@ -250,6 +250,33 @@ class IntervalTree:
             self.root = datum_node
         self._rb_insert_fixup(datum_node)
 
+    def _rb_delete(self, node: IntervalTreeNode):
+        y = node
+        y_original_color = y.color
+        if not node.left:
+            child = node.right
+            self._transplant(node, child)
+        elif not node.right:
+            child = node.left
+            self._transplant(node, child)
+        else:  # node has 2 children
+            y = node.right.minimum()
+            y_original_color = y.color
+            child = y.right
+            if y.parent == node:
+                child.parent = y
+            else:
+                self._transplant(y, child)
+                y.right = node.right
+                y.right.parent = y
+
+            self._transplant(node, y)
+            y.left = node.left
+            y.left.parent = y
+            y.color = node.color
+        if y_original_color.value:
+            self._rb_delete_fixup(child)
+
     def all_overlaps(self, interval: Interval):
         if interval:
             node = self.__class__()._create_node(interval)
@@ -384,6 +411,64 @@ class IntervalTree:
                     self._left_rotate(node.parent.parent)
 
         self.root.color = Color.BLACK
+
+    def _rb_delete_fixup(self, node: IntervalTreeNode):
+        while node != self.root and node.color.value:
+            if node.is_left():  # node is a left child
+                brother = node.parent.right
+                if brother and not brother.color.value:  # case 1: brother is RED
+                    brother.color = Color.BLACK
+                    node.parent.color = Color.RED
+                    self._left_rotate(node.parent)
+                    brother = node.parent.right
+
+                if brother and (not brother.left or brother.left.color.value) and \
+                    (not brother.right or brother.right.color.value):  # case 2: brother is black with both children
+                    # black
+                    brother.color = Color.RED
+                    node = node.parent
+                else:
+                    if not brother.right or brother.right.color.value:  # case 3: brother is black with right child
+                        # black and left child red
+                        brother.left.color = Color.BLACK
+                        brother.color = Color.RED
+                        self._right_rotate(brother)
+                        brother = node.parent.right
+                    # case 4: brother is black with right child red
+                    brother.color = node.parent.color
+                    node.parent.color = Color.BLACK
+                    node.right.color = Color.BLACK
+                    self._left_rotate(node.parent)
+                    node = self.root
+
+            else:  # node is a right child
+                brother = node.parent.left
+                if brother and not brother.color.value:  # case 1: brother is RED
+                    brother.color = Color.BLACK
+                    node.parent.color = Color.RED
+                    self._right_rotate(node.parent)
+                    brother = node.parent.left
+
+                if brother and (not brother.right or brother.right.color.value) and \
+                    (not brother.left or brother.left.color.value):  # case 2: brother is black with both children
+                    # black
+                    brother.color = Color.RED
+                    node = node.parent
+                else:
+                    if not brother.left or brother.left.color.value:  # case 3: brother is black with left child
+                        # black and right child red
+                        brother.right.color = Color.BLACK
+                        brother.color = Color.RED
+                        self._left_rotate(brother)
+                        brother = node.parent.left
+                    # case 4: brother is black with right child red
+                    brother.color = node.parent.color
+                    node.parent.color = Color.BLACK
+                    node.left.color = Color.BLACK
+                    self._right_rotate(node.parent)
+                    node = self.root
+
+        node.color = Color.BLACK
 
     @classmethod
     def _create_node(cls, data):

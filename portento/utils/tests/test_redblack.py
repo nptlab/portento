@@ -1,5 +1,7 @@
 import pytest
 from pandas import Interval
+import random
+from math import log2
 
 from portento.utils import IntervalTree, IntervalTreeNode
 
@@ -11,23 +13,41 @@ def black_root(tree: IntervalTree):
     return True
 
 
-def black_child(node: IntervalTreeNode):
-    if not node.color.value:  # RED
-        return all([not node.left or node.left.color.value, not node.right or node.right.color.value])
-
-
-def count_n_black(node: IntervalTreeNode):
-    if not node:
-        return 1
-
-    return count_n_black(node.left) + count_n_black(node.right)
-
-
-def same_n_black(node: IntervalTreeNode):
+def red_has_black_child(node: IntervalTreeNode):
     if not node:
         return True
 
-    return count_n_black(node.left) == count_n_black(node.right)
+    if not node.color.value:  # RED
+        return all([not node.left or node.left.color.value,
+                    not node.right or node.right.color.value,
+                    red_has_black_child(node.left) and red_has_black_child(node.right)])
+
+    return red_has_black_child(node.left) and red_has_black_child(node.right)
+
+
+def height(node: IntervalTreeNode):
+    if not node:
+        return 0
+    return 1 + max(height(node.left), height(node.right))
+
+
+def same_q_black_paths(node):
+    if not node:
+        return True
+    return q_black_hidden(node, node.left, 0) == q_black_hidden(node, node.right, 0)
+
+
+def q_black_hidden(node, node_next, q):
+    new_q = q + (1 if node.color.value else 0)
+    if not node_next:
+        return new_q
+    else:
+        compute_left = q_black_hidden(node_next, node_next.left, new_q)
+        compute_right = q_black_hidden(node_next, node_next.right, new_q)
+        if compute_left == compute_right:
+            return compute_left
+        else:  # this will never happen
+            raise Exception
 
 
 class TestRedBlackTree:
@@ -58,3 +78,17 @@ class TestRedBlackTree:
         assert tree.root.left.value == intervals['alpha']
         assert tree.root.right.left.value == intervals['beta']
         assert tree.root.right.right.value == intervals['gamma']
+
+    @pytest.mark.parametrize('s', list(range(20)))
+    def test_properties(self, s):
+        random.seed(s)
+        n = 100
+
+        intervals = random.sample([Interval(x, x+1) for x in range(n)], n)
+        tree = IntervalTree()
+        for interval in intervals:
+            tree._rb_add(interval)
+            assert black_root(tree)
+            assert red_has_black_child(tree.root)
+            assert same_q_black_paths(tree.root)
+            assert height(tree.root) <= 2*log2(n+1)

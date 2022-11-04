@@ -243,7 +243,7 @@ class IntervalTree:
             self.root = datum_node
 
     def _rb_add(self, datum: value_type):
-        datum_node = self._delete_overlapping_intervals(datum)
+        datum_node = self.__class__()._create_node(datum)
         if self.root:
             self.root.add(datum_node)
         else:
@@ -355,7 +355,7 @@ class IntervalTree:
             grandparent = node.parent.parent
             if grandparent and node.parent.is_left():
                 uncle = grandparent.right
-                if uncle.color is Color.RED:  # case 1
+                if uncle and uncle.color is Color.RED:  # case 1
                     node.parent.color = Color.BLACK
                     uncle.color = Color.BLACK
                     grandparent.color = Color.RED
@@ -369,12 +369,19 @@ class IntervalTree:
                     self._right_rotate(node.parent.parent)
 
             else:
-                if node.is_left():  # case 2
-                    node = node.parent
-                    self._right_rotate(node)
-                node.parent.color = Color.BLACK  # case 3
-                node.parent.parent.color = Color.RED
-                self._left_rotate(node.parent.parent)
+                uncle = grandparent.left
+                if uncle and uncle.color is Color.RED:  # case 1
+                    node.parent.color = Color.BLACK
+                    uncle.color = Color.BLACK
+                    grandparent.color = Color.RED
+                    node = grandparent
+                else:
+                    if node.is_left():  # case 2
+                        node = node.parent
+                        self._right_rotate(node)
+                    node.parent.color = Color.BLACK  # case 3
+                    node.parent.parent.color = Color.RED
+                    self._left_rotate(node.parent.parent)
 
         self.root.color = Color.BLACK
 

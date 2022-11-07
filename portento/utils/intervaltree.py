@@ -283,26 +283,31 @@ class IntervalTree:
             y = node.right.minimum()  # y is the successor of node
             y_original_color = Color.RED if y and y.color == Color.RED else Color.BLACK
             child = y.right
-            if y.parent == node:
+            if y.parent == node:  # y == node.right
                 if child:
                     child.parent = y
                 parent = y
-                is_left = False  # TODO
+                is_left = y.is_left()  # TODO
             else:
-                parent = y.parent
                 self._transplant(y, y.right)
                 y.right = node.right
+                parent = y
                 if y.right:
                     y.right.parent = y
-                is_left = False  # TODO
+                is_left = y.is_left()  # TODO
 
             self._transplant(node, y)
             y.left = node.left
             y.left.parent = y
-            sibling = parent.left
+            sibling = y.left
             y.color = node.color
 
         if y_original_color.value:
+            print(f"WMWMWM Start fixup with "
+                  f"node={node.value if node else None}; "
+                  f"sibling={sibling.value if sibling else None}; "
+                  f"parent={parent.value if parent else None}; "
+                  f"{is_left}")
             self._rb_recursive_delete_fixup(child, sibling, parent, is_left)
 
     def all_overlaps(self, interval: Interval):
@@ -447,105 +452,161 @@ class IntervalTree:
         if node == self.root or (node.color == Color.RED if node else False):
             if node:
                 node.color = Color.BLACK
+            print("WMWMWM End of fixup.")
         else:
             if is_left:
                 if sibling.color == Color.RED if sibling else False:
                     # case 1: sibling is RED
                     # this becomes case 2, 3 or 4.
-                    sibling.color = Color.BLACK
-                    parent.color = Color.RED
-                    self._left_rotate(parent)
-                    sibling = parent.right
-                    self._rb_recursive_delete_fixup(node, sibling, parent, is_left)
+                    self.__delete_fixup_case_1(node, sibling, parent, is_left)
 
                 elif sibling and \
                     (sibling.left.color.value if sibling.left else True) and \
                     (sibling.right.color.value if sibling.right else True):
                     # case 2: sibling is black with both children black
-                    sibling.color = Color.RED
-                    node = parent  # it can't be None
-                    parent = node.parent  # if this is None, then the node is the root
-                    is_left = node.is_left()
-                    if parent:
-                        sibling = parent.right if is_left else parent.left
-                    else:
-                        sibling = None
-                    self._rb_recursive_delete_fixup(node, sibling, parent, is_left)
+                    self.__delete_fixup_case_2(node, sibling, parent, is_left)
 
                 elif sibling and (sibling.right.color.value if sibling.right else True):
                     # case 3: sibling is black with right child black and left child red
                     # this becomes case 4.
-                    sibling.left.color = Color.BLACK
-                    sibling.color = Color.RED
-                    self._right_rotate(sibling)
-                    sibling = parent.right
-                    self._rb_recursive_delete_fixup(node, sibling, parent, is_left)
+                    self.__delete_fixup_case_3(node, sibling, parent, is_left)
 
                 else:
                     # case 4: sibling is black with right child red
-                    if sibling:
-                        sibling.color = parent.color if parent else Color.BLACK
-                    if parent:
-                        parent.color = Color.BLACK
-                    if sibling and sibling.right:
-                        sibling.right.color = Color.BLACK
-
-                    self._left_rotate(parent)
-                    node = self.root
-                    parent = None
-                    is_left = True
-                    sibling = None
-                    self._rb_recursive_delete_fixup(node, sibling, parent, is_left)
+                    self.__delete_fixup_case_4(node, sibling, parent, is_left)
 
             else:
                 # as before with left and right swapped
                 if sibling.color == Color.RED if sibling else False:
                     # case 1: sibling is RED
                     # this becomes case 2, 3 or 4.
-                    sibling.color = Color.BLACK
-                    parent.color = Color.RED
-                    self._right_rotate(parent)
-                    sibling = parent.left
-                    self._rb_recursive_delete_fixup(node, sibling, parent, is_left)
+                    self.__delete_fixup_case_1(node, sibling, parent, is_left)
 
                 elif sibling and \
                     (sibling.left.color.value if sibling.left else True) and \
                     (sibling.right.color.value if sibling.right else True):
                     # case 2: sibling is black with both children black
-                    sibling.color = Color.RED
-                    node = parent  # it can't be None
-                    parent = node.parent  # if this is None, then the node is the root
-                    is_left = node.is_left()
-                    if parent:
-                        sibling = parent.right if is_left else parent.left
-                    else:
-                        sibling = None
-                    self._rb_recursive_delete_fixup(node, sibling, parent, is_left)
+                    self.__delete_fixup_case_2(node, sibling, parent, is_left)
 
                 elif sibling and (sibling.left.color.value if sibling.left else True):
                     # case 3: sibling is black with left child black and right child red
                     # this becomes case 4.
-                    sibling.right.color = Color.BLACK
-                    sibling.color = Color.RED
-                    self._left_rotate(sibling)
-                    sibling = parent.left
-                    self._rb_recursive_delete_fixup(node, sibling, parent, is_left)
+                    self.__delete_fixup_case_3(node, sibling, parent, is_left)
 
                 else:
-                    # case 4: sibling is black with right child red
-                    if sibling:
-                        sibling.color = parent.color if parent else Color.BLACK
-                    if parent:
-                        parent.color = Color.BLACK
-                    if sibling and sibling.left:
-                        sibling.left.color = Color.BLACK
+                    # case 4: sibling is black with left child red
+                    self.__delete_fixup_case_4(node, sibling, parent, is_left)
 
-                    self._right_rotate(parent)
-                    node = self.root
-                    parent = None
-                    is_left = True
-                    sibling = None
-                    self._rb_recursive_delete_fixup(node, sibling, parent, is_left)
+    def __delete_fixup_case_1(self, node, sibling, parent, is_left):
+        print(f"WMWMWM I'm in -CASE 1- with "
+              f"node={node.value if node else None}; "
+              f"sibling={sibling.value if sibling else None}; "
+              f"parent={parent.value if parent else None}; "
+              f"{is_left}")
+        # case 1: sibling is RED.
+        # This becomes case 2, 3 or 4.
+        if is_left:
+            sibling.color = Color.BLACK
+            parent.color = Color.RED
+            self._left_rotate(parent)
+            sibling = parent.right
+        else:
+            sibling.color = Color.BLACK
+            parent.color = Color.RED
+            self._right_rotate(parent)
+            sibling = parent.left
+
+        self._rb_recursive_delete_fixup(node, sibling, parent, is_left)
+
+    def __delete_fixup_case_2(self, node, sibling, parent, is_left):
+        print(f"WMWMWM I'm in -CASE 2- with "
+              f"node={node.value if node else None}; "
+              f"sibling={sibling.value if sibling else None}; "
+              f"parent={parent.value if parent else None}; "
+              f"{is_left}")
+
+        # case 2: sibling is black with both children black.
+        if is_left:
+            sibling.color = Color.RED
+            node = parent  # it can't be None
+            parent = node.parent  # if this is None, then the node is the root
+            is_left = node.is_left()
+            if parent:
+                sibling = parent.right if is_left else parent.left
+            else:
+                sibling = None
+        else:
+            sibling.color = Color.RED
+            node = parent  # it can't be None
+            parent = node.parent  # if this is None, then the node is the root
+            is_left = node.is_left()
+            if parent:
+                sibling = parent.right if is_left else parent.left
+            else:
+                sibling = None
+
+        self._rb_recursive_delete_fixup(node, sibling, parent, is_left)
+
+    def __delete_fixup_case_3(self, node, sibling, parent, is_left):
+        print(f"WMWMWM I'm in -CASE 3- with "
+              f"node={node.value if node else None}; "
+              f"sibling={sibling.value if sibling else None}; "
+              f"parent={parent.value if parent else None}; "
+              f"{is_left}")
+        # case 3: right sibling is black with right child black and left child red or
+        # case 3: left sibling is black with left child black and right child red
+        # this becomes case 4.
+        if is_left:
+            sibling.left.color = Color.BLACK
+            sibling.color = Color.RED
+            self._right_rotate(sibling)
+            sibling = parent.right
+        else:
+            sibling.right.color = Color.BLACK
+            sibling.color = Color.RED
+            self._left_rotate(sibling)
+            sibling = parent.left
+
+        self._rb_recursive_delete_fixup(node, sibling, parent, is_left)
+
+    def __delete_fixup_case_4(self, node, sibling, parent, is_left):
+        # case 4: right sibling is black with right child red
+        # case 4: left sibling is black with left child red
+        print(f"WMWMWM I'm in -CASE 4- with "
+              f"node={node.value if node else None}; "
+              f"sibling={sibling.value if sibling else None}; "
+              f"parent={parent.value if parent else None}; "
+              f"{is_left}")
+
+        if is_left:
+            if sibling:
+                sibling.color = parent.color if parent else Color.BLACK
+            if parent:
+                parent.color = Color.BLACK
+            if sibling and sibling.right:
+                sibling.right.color = Color.BLACK
+
+            self._left_rotate(parent)
+            node = self.root
+            parent = None
+            is_left = True
+            sibling = None
+
+        else:
+            if sibling:
+                sibling.color = parent.color if parent else Color.BLACK
+            if parent:
+                parent.color = Color.BLACK
+            if sibling and sibling.left:
+                sibling.left.color = Color.BLACK
+
+            self._right_rotate(parent)
+            node = self.root
+            parent = None
+            is_left = True
+            sibling = None
+
+        self._rb_recursive_delete_fixup(node, sibling, parent, is_left)
 
     @classmethod
     def _create_node(cls, data):

@@ -259,13 +259,25 @@ class IntervalTree:
             child = node.right
             is_left = node.is_left()
             parent = node.parent
-            sibling = parent.left if parent else None  # TODO
+            if parent:
+                if is_left:
+                    sibling = parent.right
+                else:
+                    sibling = parent.left
+            else:
+                sibling = None
             self._transplant(node, node.right)
         elif not node.right:
             child = node.left
             is_left = node.is_left()
             parent = node.parent
-            sibling = parent.right if parent else None  # TODO
+            if parent:
+                if is_left:
+                    sibling = parent.right
+                else:
+                    sibling = parent.left
+            else:
+                sibling = None
             self._transplant(node, node.left)
         else:  # node has 2 children
             y = node.right.minimum()  # y is the successor of node
@@ -275,7 +287,6 @@ class IntervalTree:
                 if child:
                     child.parent = y
                 parent = y
-                sibling = y.left  # this is None for sure
                 is_left = False  # TODO
             else:
                 self._transplant(y, y.right)

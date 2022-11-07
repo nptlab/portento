@@ -289,9 +289,9 @@ class IntervalTree:
                 parent = y
                 is_left = False  # TODO
             else:
+                parent = y.parent
                 self._transplant(y, y.right)
                 y.right = node.right
-                parent = y
                 if y.right:
                     y.right.parent = y
                 is_left = False  # TODO
@@ -299,7 +299,7 @@ class IntervalTree:
             self._transplant(node, y)
             y.left = node.left
             y.left.parent = y
-            sibling = y.left
+            sibling = parent.left
             y.color = node.color
 
         if y_original_color.value:

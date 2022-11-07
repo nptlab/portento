@@ -254,7 +254,7 @@ class IntervalTree:
         if not node:
             raise AttributeError("The node to delete must be not None.")
         y = node
-        y_original_color = y.color if y else Color.BLACK
+        y_original_color = Color.RED if y and y.color == Color.RED else Color.BLACK
         if not node.left:
             child = node.right
             is_left = node.is_left()
@@ -268,27 +268,27 @@ class IntervalTree:
             sibling = parent.right if parent else None  # TODO
             self._transplant(node, node.left)
         else:  # node has 2 children
-            y = node.right.minimum()
-            y_original_color = y.color if y else Color.BLACK
+            y = node.right.minimum()  # y is the successor of node
+            y_original_color = Color.RED if y and y.color == Color.RED else Color.BLACK
             child = y.right
             if y.parent == node:
                 if child:
                     child.parent = y
                 parent = y
-                sibling = y.left  # TODO
+                sibling = y.left  # this is None for sure
                 is_left = False  # TODO
             else:
-                is_left = y.is_left()
-                parent = y.parent
-                sibling = parent.left if parent else None  # TODO
-                self._transplant(y, child)
+                self._transplant(y, y.right)
                 y.right = node.right
+                parent = y
                 if y.right:
                     y.right.parent = y
+                is_left = False  # TODO
 
             self._transplant(node, y)
             y.left = node.left
             y.left.parent = y
+            sibling = y.left
             y.color = node.color
 
         if y_original_color.value:
@@ -433,8 +433,9 @@ class IntervalTree:
                                    sibling: IntervalTreeNode,
                                    parent: IntervalTreeNode,
                                    is_left: bool):
-        if not (node != self.root and (node.color == Color.BLACK if node else True)):
-            node.color = Color.BLACK
+        if node == self.root or (node.color == Color.RED if node else False):
+            if node:
+                node.color = Color.BLACK
         else:
             if is_left:
                 if sibling.color == Color.RED if sibling else False:

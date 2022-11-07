@@ -91,10 +91,10 @@ class TestRedBlackTree:
         assert tree.root.right.left.value == intervals['beta']
         assert tree.root.right.right.value == intervals['gamma']
 
-    @pytest.mark.parametrize('s', list(range(20)))
+    @pytest.mark.parametrize('s', list(range(200)))
     def test_add_delete(self, s):
         random.seed(s)
-        n = 100
+        n = 127
         intervals = random.sample([Interval(x, x + 1) for x in range(n)], n)
         tree = IntervalTree()
 
@@ -105,12 +105,12 @@ class TestRedBlackTree:
             assert same_q_black_paths(tree.root)
             assert height(tree.root) <= 2 * log2(n + 1)
 
-        intervals = random.sample(intervals, 5)
+        intervals = random.sample(intervals, n)
 
         for interval in intervals:
             node = find(tree.root, interval)
             tree._rb_delete(node)
             assert black_root(tree)
-            # assert red_has_black_child(tree.root)
+            assert red_has_black_child(tree.root)
             # assert same_q_black_paths(tree.root)
             assert height(tree.root) <= 2 * log2(n + 1)

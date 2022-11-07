@@ -78,7 +78,7 @@ class IntervalTreeNode:
         -------
             True if the node is left child of its parent
         """
-        return self.parent and self.parent.left and self.value == self.parent.left.value
+        return True if self.parent and self.parent.left and self.value == self.parent.left.value else False
 
     def add(self, other):
         """Add a node recursively in the subtree with this node as route.
@@ -251,6 +251,7 @@ class IntervalTree:
         self._rb_insert_fixup(datum_node)
 
     def _rb_delete(self, node: IntervalTreeNode):
+        print(f"WMWMWM Delete: {node.value}")
         if not node:
             raise AttributeError("The node to delete must be not None.")
         y = node
@@ -304,7 +305,7 @@ class IntervalTree:
 
         if y_original_color.value:
             print(f"WMWMWM Start fixup with "
-                  f"node={node.value if node else None}; "
+                  f"node={child.value if child else None}; "
                   f"sibling={sibling.value if sibling else None}; "
                   f"parent={parent.value if parent else None}; "
                   f"{is_left}")

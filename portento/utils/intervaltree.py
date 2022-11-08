@@ -134,7 +134,7 @@ class IntervalTreeNode:
             if self.right:
                 yield from self.right.all_overlaps(node, full_node=full_node)
 
-    def minimum(self):
+    def minimum(self, with_parent=False):
         """Navigate recursively the left children.
 
         Returns
@@ -142,8 +142,9 @@ class IntervalTreeNode:
             The minimum value of this subtree.
         """
         if self.left:
-            return self.left.minimum()
-        return self
+            return self.left.minimum(with_parent)
+
+        return self if not with_parent else (self, (self.parent if self else None))
 
     def _update_full_interval(self):
         # TODO one unique update operation, an higher-order function
@@ -281,10 +282,10 @@ class IntervalTree:
                 sibling = None
             self._transplant(node, node.left)
         else:  # node has 2 children
-            y = node.right.minimum()  # y is the successor of node
+            y, parent = node.right.minimum(with_parent=True)  # y is the successor of node
             y_original_color = Color.RED if y and y.color == Color.RED else Color.BLACK
             child = y.right
-            parent = node.right.minimum().parent
+            # parent = node.right.minimum().parent
             is_left = y.is_left()
             if y.parent == node:  # y == node.right
                 if child:

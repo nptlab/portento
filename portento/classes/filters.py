@@ -33,6 +33,7 @@ class NoFilter(Filter):
     """A links filter that accepts any link.
 
     """
+
     def __init__(self):
         pass
 
@@ -48,6 +49,7 @@ class TimeFilter(Filter):
     A link is kept if the interval has an overlapping in the user-defined intervaltree.
     __init__ takes into input a list of intervals.
     """
+
     def __init__(self, list_of_intervals: List[Interval]):
         self._interval_tree = IntervalTree(list_of_intervals)
 
@@ -91,6 +93,7 @@ class NodeFilter(Filter):
     Links with both nodes that respect the condition are kept.
     __init__ takes into input a boolean function over the nodes.
     """
+
     def __init__(self, filter_nodes: Callable):
         self._filter = filter_nodes
 
@@ -106,6 +109,7 @@ class NodeFilter(Filter):
 
 
 def filter_by_time(stream_tree: StreamTree, time_filter: Union[NoFilter, TimeFilter]):
+
     if stream_tree.root:
         return iter(SortedList(_filter_node_by_time(stream_tree.root, time_filter)))
     else:
@@ -113,6 +117,7 @@ def filter_by_time(stream_tree: StreamTree, time_filter: Union[NoFilter, TimeFil
 
 
 def _filter_node_by_time(node: Union[StreamTreeNode, IntervalTreeNode], time_filter):
+
     if time_filter(node.full_interval):
         if node.left:
             yield from _filter_node_by_time(node.left, time_filter)
@@ -127,9 +132,9 @@ def _filter_node_by_time(node: Union[StreamTreeNode, IntervalTreeNode], time_fil
 
 
 def filter_by_nodes(stream_dict: StreamDict, node_filter: Union[NoFilter, NodeFilter]):
-    for link in merge(*(stream for u, links in stream_dict.edges.items() if node_filter(u)
-                        for v, stream in links.items() if node_filter(v))):
-        yield link
+
+    yield from merge(*(stream for u, links in stream_dict.edges.items() if node_filter(u)
+                       for v, stream in links.items() if node_filter(v)))
 
 
 def filter_stream(stream: Stream,

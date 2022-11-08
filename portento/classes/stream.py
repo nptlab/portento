@@ -2,7 +2,6 @@ from pandas import Interval, Timestamp, Timedelta
 from numpy import int64, float64
 from collections.abc import Hashable
 from typing import Optional, Iterable, Union
-from random import shuffle  # TODO this will be removed as red-black trees are implemented
 
 from portento.classes.streamtree import StreamTree
 from portento.classes.streamdict import StreamDict

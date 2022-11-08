@@ -235,13 +235,6 @@ class IntervalTree:
             self.root.add(datum_node)
         else:
             self.root = datum_node
-
-    def _rb_add(self, datum: value_type):
-        datum_node = self.__class__()._create_node(datum)
-        if self.root:
-            self.root.add(datum_node)
-        else:
-            self.root = datum_node
         self._rb_insert_fixup(datum_node)
 
     def _rb_delete(self, node: IntervalTreeNode):
@@ -314,56 +307,24 @@ class IntervalTree:
             for overlapping_node in list(self.root.all_overlaps(datum_node, full_node=True)):
                 # TODO probably will have to change this when implementing red-black trees
                 datum_node = datum_node._merge_values(overlapping_node)
-                self._delete(overlapping_node)
+                self._rb_delete(overlapping_node)
 
         return datum_node
-
-    def _delete(self, node: IntervalTreeNode):
-        transplant_parent = None
-
-        if not node.left:
-            transplant_node = node.right
-            if transplant_node:
-                transplant_parent = transplant_node.parent
-            self._transplant(node, transplant_node)
-        elif not node.right:
-            transplant_node = node.left
-            transplant_parent = transplant_node.parent
-            if transplant_node:
-                transplant_parent = transplant_node.parent
-            self._transplant(node, transplant_node)
-        else:  # has both children
-            transplant_node = node.right.minimum()
-            transplant_parent = transplant_node.parent
-            if transplant_node.parent != node:
-                self._transplant(transplant_node, transplant_node.right)
-                transplant_node.right = node.right
-                transplant_node.right.parent = transplant_node
-            self._transplant(node, transplant_node)
-            transplant_node.left = node.left
-            transplant_node.left.parent = transplant_node
-
-        if transplant_parent:
-            transplant_parent._update_full_interval()
-            transplant_parent._update_time_instants()
-
-        if transplant_node:
-            transplant_node._update_full_interval()
-            transplant_node._update_time_instants()
 
     def _transplant(self, to_substitute: IntervalTreeNode, substitute: IntervalTreeNode):
         if not to_substitute.parent:
             self.root = substitute
-        elif to_substitute.is_left():
-            to_substitute.parent.left = substitute
         else:
-            to_substitute.parent.right = substitute
+            if to_substitute.is_left():
+                to_substitute.parent.left = substitute
+            else:
+                to_substitute.parent.right = substitute
+
+            to_substitute.parent._update_full_interval()
+            to_substitute.parent._update_time_instants()
+
         if substitute:
             substitute.parent = to_substitute.parent
-            if not substitute.left and not substitute.right:
-                substitute.full_interval = substitute.value
-            else:
-                substitute.full_interval = to_substitute.full_interval
 
     def _left_rotate(self, node: IntervalTreeNode):
         pivot = node.right
@@ -382,6 +343,15 @@ class IntervalTree:
             pivot.left = node
             node.parent = pivot
 
+            node._update_full_interval()
+            node._update_time_instants()
+
+            pivot._update_full_interval()
+            pivot._update_time_instants()
+
+        else:
+            raise TypeError("Left rotation is impossible.")
+
     def _right_rotate(self, node: IntervalTreeNode):
         pivot = node.left
         if pivot:
@@ -398,6 +368,15 @@ class IntervalTree:
 
             pivot.right = node
             node.parent = pivot
+
+            pivot._update_full_interval()
+            pivot._update_time_instants()
+
+            node._update_full_interval()
+            node._update_time_instants()
+
+        else:
+            raise TypeError("Right rotation is impossible.")
 
     def _rb_insert_fixup(self, node: IntervalTreeNode):
         while node.parent and node.parent.color is Color.RED:

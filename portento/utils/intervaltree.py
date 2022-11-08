@@ -360,10 +360,9 @@ class IntervalTree:
             to_substitute.parent.right = substitute
         if substitute:
             substitute.parent = to_substitute.parent
-            if not substitute.left and not substitute.right:
-                substitute.full_interval = substitute.value
-            else:
-                substitute.full_interval = to_substitute.full_interval
+
+            substitute._update_full_interval()
+            substitute._update_time_instants()
 
     def _left_rotate(self, node: IntervalTreeNode):
         pivot = node.right
@@ -382,6 +381,15 @@ class IntervalTree:
             pivot.left = node
             node.parent = pivot
 
+            node._update_full_interval()
+            node._update_time_instants()
+
+            pivot._update_full_interval()
+            pivot._update_time_instants()
+
+        else:
+            raise TypeError("Left rotation is impossible.")
+
     def _right_rotate(self, node: IntervalTreeNode):
         pivot = node.left
         if pivot:
@@ -398,6 +406,15 @@ class IntervalTree:
 
             pivot.right = node
             node.parent = pivot
+
+            pivot._update_full_interval()
+            pivot._update_time_instants()
+
+            node._update_full_interval()
+            node._update_time_instants()
+
+        else:
+            raise TypeError("Right rotation is impossible.")
 
     def _rb_insert_fixup(self, node: IntervalTreeNode):
         while node.parent and node.parent.color is Color.RED:

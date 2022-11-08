@@ -1,7 +1,7 @@
 import pytest
 from pandas import Interval
 from random import seed, shuffle
-from portento.utils import IntervalTree, cut_interval, merge_interval
+from portento.utils import IntervalTree, merge_interval
 
 
 @pytest.fixture

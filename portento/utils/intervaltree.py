@@ -170,13 +170,6 @@ class IntervalTreeNode:
         if self.left:
             new_time_instants += self.left.time_instants
         if self.right:
-            if not self.right.time_instants:
-                print("self.", self)
-                print("self.right", self.right)
-                if self.right.left:
-                    print("self.right.left", self.right.left)
-                if self.right.right:
-                    print("self.right.right", self.right.right)
             new_time_instants += self.right.time_instants
 
         self.time_instants = new_time_instants
@@ -252,7 +245,6 @@ class IntervalTree:
         self._rb_insert_fixup(datum_node)
 
     def _rb_delete(self, node: IntervalTreeNode):
-        print(f"WMWMWM Delete: {node.value}")
         if not node:
             raise AttributeError("The node to delete must be not None.")
         y = node
@@ -305,11 +297,6 @@ class IntervalTree:
             y.color = node.color
 
         if y_original_color.value:
-            print(f"WMWMWM Start fixup with "
-                  f"node={child.value if child else None}; "
-                  f"sibling={sibling.value if sibling else None}; "
-                  f"parent={parent.value if parent else None}; "
-                  f"{is_left}")
             self._rb_recursive_delete_fixup(child, sibling, parent, is_left)
 
     def all_overlaps(self, interval: Interval):
@@ -454,7 +441,6 @@ class IntervalTree:
         if node == self.root or (node.color == Color.RED if node else False):
             if node:
                 node.color = Color.BLACK
-            print("WMWMWM End of fixup.")
         else:
             if is_left:
                 if sibling.color == Color.RED if sibling else False:
@@ -500,11 +486,6 @@ class IntervalTree:
                     self.__delete_fixup_case_4(node, sibling, parent, is_left)
 
     def __delete_fixup_case_1(self, node, sibling, parent, is_left):
-        print(f"WMWMWM I'm in -CASE 1- with "
-              f"node={node.value if node else None}; "
-              f"sibling={sibling.value if sibling else None}; "
-              f"parent={parent.value if parent else None}; "
-              f"{is_left}")
         # case 1: sibling is RED.
         # This becomes case 2, 3 or 4.
         if is_left:
@@ -521,12 +502,6 @@ class IntervalTree:
         self._rb_recursive_delete_fixup(node, sibling, parent, is_left)
 
     def __delete_fixup_case_2(self, node, sibling, parent, is_left):
-        print(f"WMWMWM I'm in -CASE 2- with "
-              f"node={node.value if node else None}; "
-              f"sibling={sibling.value if sibling else None}; "
-              f"parent={parent.value if parent else None}; "
-              f"{is_left}")
-
         # case 2: sibling is black with both children black.
         if is_left:
             sibling.color = Color.RED
@@ -550,11 +525,6 @@ class IntervalTree:
         self._rb_recursive_delete_fixup(node, sibling, parent, is_left)
 
     def __delete_fixup_case_3(self, node, sibling, parent, is_left):
-        print(f"WMWMWM I'm in -CASE 3- with "
-              f"node={node.value if node else None}; "
-              f"sibling={sibling.value if sibling else None}; "
-              f"parent={parent.value if parent else None}; "
-              f"{is_left}")
         # case 3: right sibling is black with right child black and left child red or
         # case 3: left sibling is black with left child black and right child red
         # this becomes case 4.
@@ -574,12 +544,6 @@ class IntervalTree:
     def __delete_fixup_case_4(self, node, sibling, parent, is_left):
         # case 4: right sibling is black with right child red
         # case 4: left sibling is black with left child red
-        print(f"WMWMWM I'm in -CASE 4- with "
-              f"node={node.value if node else None}; "
-              f"sibling={sibling.value if sibling else None}; "
-              f"parent={parent.value if parent else None}; "
-              f"{is_left}")
-
         if is_left:
             if sibling:
                 sibling.color = parent.color if parent else Color.BLACK

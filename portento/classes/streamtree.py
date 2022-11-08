@@ -27,6 +27,7 @@ class StreamTreeNode(IntervalTreeNode):
         return str(super().__str__(), str(self.u), str(self.v))
 
     @property
+    @property
     def length(self):
         raise NotImplementedError("This metric has no meaning in this data structure."
                                   "If you need the total duration of a Stream, call stream_duration_len()"

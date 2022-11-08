@@ -354,15 +354,18 @@ class IntervalTree:
     def _transplant(self, to_substitute: IntervalTreeNode, substitute: IntervalTreeNode):
         if not to_substitute.parent:
             self.root = substitute
-        elif to_substitute.is_left():
-            to_substitute.parent.left = substitute
         else:
-            to_substitute.parent.right = substitute
+            if to_substitute.is_left():
+                to_substitute.parent.left = substitute
+            else:
+                to_substitute.parent.right = substitute
+
+            to_substitute.parent._update_full_interval()
+            to_substitute.parent._update_time_instants()
+
         if substitute:
             substitute.parent = to_substitute.parent
 
-            substitute._update_full_interval()
-            substitute._update_time_instants()
 
     def _left_rotate(self, node: IntervalTreeNode):
         pivot = node.right

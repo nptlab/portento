@@ -284,6 +284,8 @@ class IntervalTree:
             y = node.right.minimum()  # y is the successor of node
             y_original_color = Color.RED if y and y.color == Color.RED else Color.BLACK
             child = y.right
+            parent = node.right.minimum().parent
+            is_left = y.is_left()
             if y.parent == node:  # y == node.right
                 if child:
                     child.parent = y
@@ -292,15 +294,13 @@ class IntervalTree:
             else:
                 self._transplant(y, y.right)
                 y.right = node.right
-                parent = y
                 if y.right:
                     y.right.parent = y
-                is_left = y.is_left()  # TODO
 
             self._transplant(node, y)
             y.left = node.left
             y.left.parent = y
-            sibling = y.left
+            sibling = parent.right if is_left else parent.left
             y.color = node.color
 
         if y_original_color.value:

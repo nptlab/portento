@@ -62,3 +62,7 @@ class StreamTree(IntervalTree):
             return StreamTreeNode(data)
         elif isinstance(data, Link):
             return StreamTreeNode(data.interval, u=data.u, v=data.v)
+
+    @classmethod
+    def _merge(cls, node_1, node_2):
+        return StreamTreeNode(merge_interval(node_1.value, node_2.value), u=node_2.u, v=node_2.v)

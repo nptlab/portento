@@ -230,12 +230,49 @@ class IntervalTree:
         datum : Interval
 
         """
-        datum_node = self._delete_overlapping_intervals(datum)
+        datum_node = self.__class__()._create_node(datum)
+        """x = self.root
+        while x and not x.overlaps(datum_node):
+            if x.left and x.left.full_interval.right >= datum_node.value.right:
+                x = x.left
+            else:
+                x = x.right
+        datum_node = datum_node._merge_values(x)
+        self._rb_delete(x)"""
+        self._add(datum_node)
+
+    def _add(self, node):
         if self.root:
-            self.root.add(datum_node)
+            self._add_in_subtree(self.root, node)
         else:
-            self.root = datum_node
-        self._rb_insert_fixup(datum_node)
+            self.root = node
+
+        self._rb_insert_fixup(node)
+
+    def _add_in_subtree(self, subtree, node):
+        if subtree.overlaps(node):
+            node = self.__class__()._merge(node, subtree)
+            self._rb_delete(subtree)
+            self._add(node)  # restart from tree
+
+        elif node.value < subtree.value:
+            if not subtree.left:
+                node.parent = subtree
+                subtree.left = node
+                # update additional information recursively
+                subtree._update_full_interval()
+                subtree._update_time_instants()
+            else:
+                self._add_in_subtree(subtree.left, node)
+        else:  # other.value > self.value
+            if not subtree.right:
+                node.parent = subtree
+                subtree.right = node
+                # update additional information recursively
+                subtree._update_full_interval()
+                subtree._update_time_instants()
+            else:
+                self._add_in_subtree(subtree.right, node)
 
     def _rb_delete(self, node: IntervalTreeNode):
         if not node:
@@ -557,3 +594,8 @@ class IntervalTree:
     def _create_node(cls, data):
         # data is assumed to be Interval
         return IntervalTreeNode(data)
+
+    @classmethod
+    def _merge(cls, node_1, node_2):
+        # data is assumed to be Interval
+        return IntervalTreeNode(merge_interval(node_1.value, node_2.value))

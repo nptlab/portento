@@ -231,14 +231,12 @@ class IntervalTree:
 
         """
         datum_node = self.__class__()._create_node(datum)
-        """x = self.root
-        while x and not x.overlaps(datum_node):
-            if x.left and x.left.full_interval.right >= datum_node.value.right:
-                x = x.left
-            else:
-                x = x.right
-        datum_node = datum_node._merge_values(x)
-        self._rb_delete(x)"""
+        overlap = self._find_overlap(datum_node)
+        while overlap:
+            datum_node = self.__class__()._merge(datum_node, overlap)
+            self._rb_delete(overlap)
+            overlap = self._find_overlap(datum_node)
+
         self._add(datum_node)
 
     def _add(self, node):
@@ -251,10 +249,7 @@ class IntervalTree:
 
     def _add_in_subtree(self, subtree, node):
         if subtree.overlaps(node):
-            node = self.__class__()._merge(node, subtree)
-            self._rb_delete(subtree)
-            self._add(node)  # restart from tree
-
+            raise Exception("This should not happen at this point. All overlapping nodes have been removed.")
         elif node.value < subtree.value:
             if not subtree.left:
                 node.parent = subtree
@@ -347,6 +342,31 @@ class IntervalTree:
                 self._rb_delete(overlapping_node)
 
         return datum_node
+
+    def _find_overlap(self, node):
+
+        x = self.root
+        while x and not x.overlaps(node):
+            if x.left and x.left.full_interval.right >= node.value.left:
+                x = x.left
+            else:
+                x = x.right
+
+        return x
+
+    def _absorb_overlaps(self, subtree, node):
+        while subtree:
+            if subtree.overlaps(node):
+                node = self.__class__()._merge(node, subtree)
+                self._rb_delete(subtree)
+                subtree = self.root
+            else:
+                if subtree.left and subtree.left.full_interval.right >= node.value.left:
+                    subtree = subtree.left
+                else:
+                    subtree = subtree.right
+
+        return node
 
     def _transplant(self, to_substitute: IntervalTreeNode, substitute: IntervalTreeNode):
         if not to_substitute.parent:

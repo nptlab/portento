@@ -4,6 +4,7 @@ from numpy import number
 from enum import Enum
 from dataclasses import dataclass, field
 from portento.utils.intervals_functions import cut_interval, merge_interval
+from portento.exception import PortentoNodeOverlapFound, PortentoNodeOverlapNotFound
 
 
 # TODO delete when adding one by one (if overlaps than delete, merge and reinsert until reach a leaf)
@@ -357,31 +358,6 @@ class IntervalTree:
                         overlap = self._find_overlap_in_subtree(subtree.right, node)
                     return overlap
         return None
-
-    def _not_recursive_find_overlap(self, node):
-
-        x = self.root
-        while x and not x.overlaps(node):
-            if x.left and x.left.full_interval.right >= node.value.left:
-                x = x.left
-            else:
-                x = x.right
-
-        return x
-
-    def _absorb_overlaps(self, subtree, node):
-        while subtree:
-            if subtree.overlaps(node):
-                node = self.__class__()._merge(node, subtree)
-                self._rb_delete(subtree)
-                subtree = self.root
-            else:
-                if subtree.left and subtree.left.full_interval.right >= node.value.left:
-                    subtree = subtree.left
-                else:
-                    subtree = subtree.right
-
-        return node
 
     def _transplant(self, to_substitute: IntervalTreeNode, substitute: IntervalTreeNode):
         if not to_substitute.parent:

@@ -129,12 +129,13 @@ class TestRedBlackTree:
 
         random.seed(s)
         n = 127
-        intervals = [Interval(x, x+1, 'both') for x in range(n)]
+        intervals = [Interval(x, x, 'both') for x in range(n)]
         tree = IntervalTree(intervals)
         intervals = random.sample(intervals, n)
 
         for interval in intervals:
-            tree._delete_overlapping_intervals(interval)
+            to_delete = tree._find_overlap(IntervalTreeNode(interval))
+            tree._rb_delete(to_delete)
             nodes = list(visit(tree.root))
             for node in nodes:
                 full = node.full_interval

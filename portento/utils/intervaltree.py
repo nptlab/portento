@@ -344,6 +344,21 @@ class IntervalTree:
         return datum_node
 
     def _find_overlap(self, node):
+        return self._find_overlap_in_subtree(self.root, node)
+
+    def _find_overlap_in_subtree(self, subtree, node):
+        if subtree:
+            if subtree.full_interval.overlaps(node.full_interval):
+                if subtree.overlaps(node):
+                    return subtree
+                else:
+                    overlap = self._find_overlap_in_subtree(subtree.left, node)
+                    if not overlap:
+                        overlap = self._find_overlap_in_subtree(subtree.right, node)
+                    return overlap
+        return None
+
+    def _not_recursive_find_overlap(self, node):
 
         x = self.root
         while x and not x.overlaps(node):

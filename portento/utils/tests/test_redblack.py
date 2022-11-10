@@ -1,3 +1,5 @@
+import itertools
+
 import pytest
 from pandas import Interval
 import random
@@ -128,48 +130,38 @@ class TestRedBlackTree:
                     yield from visit(n.right)
 
         random.seed(s)
-        n = 127
-        intervals = [Interval(x, x, 'both') for x in range(n)]
+        n = 190
+        intervals = list(itertools.compress(map(lambda x: Interval(x, x+1, 'both'), range(n)), itertools.cycle([1,1,0])))
         tree = IntervalTree(intervals)
-        intervals = random.sample(intervals, n)
+        intervals = random.sample(intervals, len(intervals))
 
         for interval in intervals:
             to_delete = tree._find_overlap(IntervalTreeNode(interval))
-            tree._rb_delete(to_delete)
-            nodes = list(visit(tree.root))
-            for node in nodes:
-                full = node.full_interval
-                all_instants = node.value.length
-                if node.left:
-                    full = merge_interval(full, node.left.full_interval)
-                    all_instants += node.left.time_instants
-                    assert node.full_interval.left <= node.left.full_interval.left
-                    assert node.left.time_instants < node.time_instants
-                if node.right:
-                    full = merge_interval(full, node.right.full_interval)
-                    all_instants += node.right.time_instants
-                    assert node.full_interval.right >= node.right.full_interval.right
-                    assert node.right.time_instants < node.time_instants
+            if to_delete:
+                tree._rb_delete(to_delete)
+                nodes = list(visit(tree.root))
+                for node in nodes:
+                    all_instants = node.value.length
+                    if node.left:
+                        all_instants += node.left.time_instants
+                    if node.right:
+                        all_instants += node.right.time_instants
 
-                assert node.full_interval == full
-                assert node.time_instants == all_instants
+                    assert node.time_instants == all_instants, f"{node.value, node.time_instants}" \
+                                                           f"{(node.left.value, node.left.time_instants) if node.left else None}" \
+                                                           f"{(node.right.value, node.right.time_instants )if node.right else None}"
 
-        for interval in intervals:
+        """for interval in intervals:
             tree.add(interval)  # reinsert interval
             nodes = list(visit(tree.root))
             for node in nodes:
-                full = node.full_interval
                 all_instants = node.value.length
                 if node.left:
-                    full = merge_interval(full, node.left.full_interval)
                     all_instants += node.left.time_instants
-                    assert node.full_interval.left <= node.left.full_interval.left
-                    assert node.left.time_instants < node.time_instants
                 if node.right:
-                    full = merge_interval(full, node.right.full_interval)
                     all_instants += node.right.time_instants
-                    assert node.full_interval.right >= node.right.full_interval.right
-                    assert node.right.time_instants < node.time_instants
 
-                assert node.full_interval == full
-                assert node.time_instants == all_instants
+                assert node.time_instants == all_instants, f"{node.value, node.time_instants}" \
+                                                           f"{node.left.value, node.left.time_instants if node.left else None}" \
+                                                           f"{node.right.value, node.right.time_instants if node.right else None}"
+                                                           """

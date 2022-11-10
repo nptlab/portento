@@ -27,20 +27,19 @@ class StreamTreeNode(IntervalTreeNode):
         return str(super().__str__(), str(self.u), str(self.v))
 
     @property
-    @property
     def length(self):
         raise NotImplementedError("This metric has no meaning in this data structure."
                                   "If you need the total duration of a Stream, call stream_duration_len()"
                                   "of the Stream object.")
+
+    def _update_time_instants(self, update_op):
+        pass
 
     def overlaps(self, other):
         if (not other.u and not other.v) or (not self.u and not self.v):  # just overlap over the interval
             return self.value.overlaps(other.value)
         else:
             return self.value.overlaps(other.value) and self.u == other.u and self.v == other.v
-
-    def _update_time_instants(self):
-        pass
 
     def _merge_values(self, other):
         return StreamTreeNode(merge_interval(self.value, other.value), u=self.u, v=self.v)

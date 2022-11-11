@@ -125,7 +125,7 @@ class TestRedBlackTree:
             assert same_q_black_paths(tree.root)
             assert height(tree.root) <= 2 * log2(n - n_deleted + 1)
 
-    @pytest.mark.parametrize('s', list(range(20)))
+    @pytest.mark.parametrize('s', list(range(100)))
     def test_update(self, s):
 
         def visit(subtree):
@@ -137,9 +137,9 @@ class TestRedBlackTree:
                     yield from visit(subtree.right)
 
         random.seed(s)
-        n = 10
+        n = 190
         intervals = list(
-            itertools.compress(map(lambda x: Interval(x, x + 1, 'both'), range(n)), itertools.cycle([1, 1, 0])))
+            itertools.compress(map(lambda x: Interval(x, x + 1, 'both'), range(n)), itertools.cycle([1, 0, 1, 1, 0])))
         tree = IntervalTree(intervals)
         intervals = random.sample(intervals, len(intervals))
 
@@ -147,8 +147,7 @@ class TestRedBlackTree:
             to_delete = tree._find_overlap(IntervalTreeNode(interval))
             if to_delete:
                 tree._rb_delete(to_delete)
-                nodes = list(visit(tree.root))
-                for node in nodes:
+                for node in visit(tree.root):
                     all_instants = node.length
                     if node.left:
                         all_instants += node.left.time_instants

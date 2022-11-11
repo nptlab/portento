@@ -29,7 +29,7 @@ class IntervalTreeNode:
 
     def __post_init__(self):
         self.full_interval = self.value
-        self.time_instants = self.value.length  # TODO ask for this
+        self.time_instants = 1
 
     def __iter__(self):
         """Iterate over the nodes depth-first visit.
@@ -56,7 +56,7 @@ class IntervalTreeNode:
 
     @property
     def length(self):
-        return self.value.length
+        return 1
 
     def overlaps(self, other):
         """Check if two nodes have overlapping intervals.
@@ -163,24 +163,31 @@ class IntervalTreeNode:
         if self.parent:  # recursively update the full intervals
             self.parent._update_full_interval()
 
-    def _update_time_instants(self, update_op, ignore=None):
+    def _compute_time_instants(self):
+        self.time_instants = self.length + \
+                             (self.left.time_instants if self.left else 0) + \
+                             (self.right.time_instants if self.right else 0)
+
+    def _update_time_instants(self, update_op):
         """Recursively update full_interval navigating through parents
 
         """
-        new_time_instants = self.length + \
+        """self.time_instants = self.length + \
                              (self.left.time_instants if self.left else 0) + \
-                             (self.right.time_instants if self.right else 0) - \
-                             (ignore if ignore else 0)
+                             (self.right.time_instants if self.right else 0)
 
-        if new_time_instants != self.time_instants:
-            if self.parent:
-                self.parent._update_time_instants(update_op)
+        if self.parent:
+            self.parent._update_time_instants()"""
+        parent = self.parent
+        while parent:
+            parent.time_instants = update_op(parent.time_instants, self.length)
+            parent = parent.parent
 
-    def _update_time_instants_addition(self):
+    def _update_time_instants_add(self):
         self._update_time_instants(operator.add)
 
-    def _update_time_instants_deletion(self):
-        self._update_time_instants(operator.sub, self.length)
+    def _update_time_instants_delete(self):
+        self._update_time_instants(operator.sub)
 
     def _merge_values(self, other):
         return IntervalTreeNode(merge_interval(self.value, other.value))
@@ -259,37 +266,31 @@ class IntervalTree:
         if subtree.overlaps(node):
             raise Exception("This should not happen at this point. All overlapping nodes have been removed.")
         else:
-            subtree.time_instants += node.length
             if node.value < subtree.value:
                 if not subtree.left:
                     node.parent = subtree
                     subtree.left = node
                 else:
                     self._add_in_subtree(subtree.left, node)
+                    return
             else:  # other.value > self.value
                 if not subtree.right:
                     node.parent = subtree
                     subtree.right = node
                 else:
                     self._add_in_subtree(subtree.right, node)
+                    return
+
+        node._update_time_instants_add()
 
     def _rb_delete(self, node: IntervalTreeNode):
         print(f"deleting {node.value, node.time_instants}")
         if not node:
             raise AttributeError("The node to delete must be not None.")
 
-        p = node.parent
-        delete = node.length
-        while p:
-            p.time_instants = p.length + \
-                              (p.left.time_instants if p.left else 0) + \
-                              (p.right.time_instants if p.right else 0) - \
-                              delete
-            p = p.parent
-            delete = 0
-
         y = node
         y_original_color = Color.RED if y and y.color == Color.RED else Color.BLACK
+        y._update_time_instants_delete()
         if not node.left:
             child = node.right
             is_left = node.is_left()
@@ -302,6 +303,7 @@ class IntervalTree:
             else:
                 sibling = None
             self._transplant(node, node.right)
+
         elif not node.right:
             child = node.left
             is_left = node.is_left()
@@ -314,11 +316,13 @@ class IntervalTree:
             else:
                 sibling = None
             self._transplant(node, node.left)
+
         else:  # node has 2 children
             y, parent = node.right.minimum(with_parent=True)  # y is the successor of node
             y_original_color = Color.RED if y and y.color == Color.RED else Color.BLACK
-            child = y.right
+            child = y.right  # right child of node's successor in its subtree
             is_left = y.is_left()
+            y._update_time_instants_delete()
             if y.parent == node:  # y == node.right
                 if child:
                     child.parent = y
@@ -335,6 +339,8 @@ class IntervalTree:
             y.left.parent = y
             sibling = parent.right if is_left else parent.left
             y.color = node.color
+            y._compute_time_instants()
+            y._update_time_instants_add()
 
         if y_original_color.value:
             self._rb_recursive_delete_fixup(child, sibling, parent, is_left)
@@ -378,6 +384,7 @@ class IntervalTree:
         if not to_substitute.parent:
             self.root = substitute
         else:
+
             if to_substitute.is_left():
                 to_substitute.parent.left = substitute
             else:
@@ -385,9 +392,11 @@ class IntervalTree:
 
         if substitute:
             substitute.parent = to_substitute.parent
+            substitute._compute_time_instants()
 
     def _left_rotate(self, node: IntervalTreeNode):
-        print(f"Rotating Left node={node.value, node.time_instants}, pivot={(node.right.value, node.right.time_instants) if node.right else None}")
+        print(
+            f"Rotating Left node={node.value, node.time_instants}, pivot={(node.right.value, node.right.time_instants) if node.right else None}")
         pivot = node.right
         if pivot:
             node.right = pivot.left
@@ -405,16 +414,15 @@ class IntervalTree:
             node.parent = pivot
 
             # TODO this could be more efficient
-            pivot.time_instants = node.time_instants
-            node.time_instants = node.length + \
-                                 (node.left.time_instants if node.left else 0) + \
-                                 (node.right.time_instants if node.right else 0)
+            node._compute_time_instants()
+            pivot._compute_time_instants()
 
         else:
             raise TypeError("Left rotation is impossible.")
 
     def _right_rotate(self, node: IntervalTreeNode):
-        print(f"Rotating Right node={node.value, node.time_instants}, pivot={(node.left.value, node.left.full_interval) if node.left else None}")
+        print(
+            f"Rotating Right node={node.value, node.time_instants}, pivot={(node.left.value, node.left.time_instants) if node.left else None}")
         pivot = node.left
         if pivot:
             node.left = pivot.right
@@ -431,10 +439,8 @@ class IntervalTree:
             pivot.right = node
             node.parent = pivot
 
-            pivot.time_instants = node.time_instants
-            node.time_instants = node.length + \
-                                 (node.left.time_instants if node.left else 0) + \
-                                 (node.right.time_instants if node.right else 0)
+            node._compute_time_instants()
+            pivot._compute_time_instants()
 
         else:
             raise TypeError("Right rotation is impossible.")

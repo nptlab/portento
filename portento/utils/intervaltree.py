@@ -93,11 +93,12 @@ class IntervalTreeNode:
 
         return self if not with_parent else (self, (self.parent if self else None))
 
-    def _update_full_interval(self):
+    def compute_full_interval(self):
         # TODO one unique update operation, an higher-order function
         """Recursively update full_interval navigating through parents
 
         """
+        full_intervals = [self.value, self.left.full_interval if self.left else self.vaue]
         new_full_interval = self.value
         if self.left:
             new_full_interval = merge_interval(new_full_interval, self.left.full_interval)
@@ -105,9 +106,6 @@ class IntervalTreeNode:
             new_full_interval = merge_interval(new_full_interval, self.right.full_interval)
 
         self.full_interval = new_full_interval
-
-        if self.parent:  # recursively update the full intervals
-            self.parent._update_full_interval()
 
     def _compute_time_instants(self):
         self.time_instants = self.length + \

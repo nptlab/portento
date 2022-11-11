@@ -158,8 +158,7 @@ class TestRedBlackTree:
 
         for interval in intervals:
             tree.add(interval)  # reinsert interval
-            nodes = list(visit(tree.root))
-            for node in nodes:
+            for node in visit(tree.root):
                 all_instants = node.value.length
                 if node.left:
                     all_instants += node.left.time_instants

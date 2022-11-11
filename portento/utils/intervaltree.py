@@ -256,7 +256,6 @@ class IntervalTree:
         self._rb_insert_fixup(node)
 
     def _add_in_subtree(self, subtree, node):
-        print(f"Add {node.value} in {(subtree.value, subtree.time_instants) if subtree else None}")
         if subtree.overlaps(node):
             raise Exception("This should not happen at this point. All overlapping nodes have been removed.")
         else:
@@ -278,7 +277,6 @@ class IntervalTree:
         node._update_time_instants_add()
 
     def _rb_delete(self, node: IntervalTreeNode):
-        print(f"deleting {node.value, node.time_instants}")
         if not node:
             raise AttributeError("The node to delete must be not None.")
 
@@ -389,8 +387,6 @@ class IntervalTree:
             substitute._compute_time_instants()
 
     def _left_rotate(self, node: IntervalTreeNode):
-        print(
-            f"Rotating Left node={node.value, node.time_instants}, pivot={(node.right.value, node.right.time_instants) if node.right else None}")
         pivot = node.right
         if pivot:
             node.right = pivot.left
@@ -415,8 +411,6 @@ class IntervalTree:
             raise TypeError("Left rotation is impossible.")
 
     def _right_rotate(self, node: IntervalTreeNode):
-        print(
-            f"Rotating Right node={node.value, node.time_instants}, pivot={(node.left.value, node.left.time_instants) if node.left else None}")
         pivot = node.left
         if pivot:
             node.left = pivot.right

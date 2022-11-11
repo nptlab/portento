@@ -18,7 +18,7 @@ def compute_closure(closed_left, closed_right):
     return closed
 
 
-def merge_interval(*intervals: Iterable[pd.Interval]):
+def merge_interval(*intervals):
     """Merge pandas Interval objects
 
         Parameters

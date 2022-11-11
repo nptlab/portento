@@ -125,7 +125,7 @@ class TestRedBlackTree:
             assert same_q_black_paths(tree.root)
             assert height(tree.root) <= 2 * log2(n - n_deleted + 1)
 
-    @pytest.mark.parametrize('s', list(range(100)))
+    @pytest.mark.parametrize('s', list(range(20)))
     def test_update(self, s):
 
         def visit(subtree):
@@ -154,11 +154,9 @@ class TestRedBlackTree:
                     if node.right:
                         all_instants += node.right.time_instants
 
-                    assert node.time_instants == all_instants, f"{node.value, node.time_instants}" \
-                                                               f"{(node.left.value, node.left.time_instants) if node.left else None}" \
-                                                               f"{(node.right.value, node.right.time_instants) if node.right else None}"
+                    assert node.time_instants == all_instants
 
-        """for interval in intervals:
+        for interval in intervals:
             tree.add(interval)  # reinsert interval
             nodes = list(visit(tree.root))
             for node in nodes:
@@ -168,7 +166,4 @@ class TestRedBlackTree:
                 if node.right:
                     all_instants += node.right.time_instants
 
-                assert node.time_instants == all_instants, f"{node.value, node.time_instants}" \
-                                                           f"{node.left.value, node.left.time_instants if node.left else None}" \
-                                                           f"{node.right.value, node.right.time_instants if node.right else None}"
-                                                           """
+                assert node.time_instants == all_instants

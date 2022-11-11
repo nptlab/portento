@@ -32,7 +32,13 @@ class StreamTreeNode(IntervalTreeNode):
                                   "If you need the total duration of a Stream, call stream_duration_len()"
                                   "of the Stream object.")
 
-    def _update_time_instants(self, update_op):
+    def _compute_time_instants(self):
+        pass
+
+    def _update_time_instants_add(self):
+        pass
+
+    def _update_time_instants_delete(self):
         pass
 
     def overlaps(self, other):

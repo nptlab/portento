@@ -29,7 +29,7 @@ class IntervalTreeNode:
 
     def __post_init__(self):
         self.full_interval = self.value
-        self.time_instants = 1
+        self.time_instants = self.value.length
 
     def __iter__(self):
         """Iterate over the nodes depth-first visit.
@@ -56,7 +56,7 @@ class IntervalTreeNode:
 
     @property
     def length(self):
-        return 1
+        return self.value.length
 
     def overlaps(self, other):
         """Check if two nodes have overlapping intervals.
@@ -172,12 +172,6 @@ class IntervalTreeNode:
         """Recursively update full_interval navigating through parents
 
         """
-        """self.time_instants = self.length + \
-                             (self.left.time_instants if self.left else 0) + \
-                             (self.right.time_instants if self.right else 0)
-
-        if self.parent:
-            self.parent._update_time_instants()"""
         parent = self.parent
         while parent:
             parent.time_instants = update_op(parent.time_instants, self.length)

@@ -124,7 +124,7 @@ def _filter_node_by_time(node: Union[StreamTreeNode, IntervalTreeNode], time_fil
         if time_filter(node.value):
             for interval in (time_filter[node.value]):
                 if isinstance(node, StreamTreeNode):
-                    yield Link(interval, node.u, node.v)
+                    yield Link(interval, node.u, node.v)  # TODO yield from sorted()
                 else:
                     yield interval
         if node.right:

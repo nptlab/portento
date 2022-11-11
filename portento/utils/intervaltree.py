@@ -81,60 +81,6 @@ class IntervalTreeNode:
         """
         return True if self.parent and self.parent.left and self.value == self.parent.left.value else False
 
-    def add(self, other):
-        """Add a node recursively in the subtree with this node as route.
-        Respects the structure of the Binary Search Tree.
-
-        Parameters
-        ----------
-        other : IntervalTreeNode
-            The node to insert to the subtree.
-
-        """
-
-        if other.value < self.value:
-            if not self.left:
-                other.parent = self
-                self.left = other
-                # update additional information recursively
-                self._update_full_interval()
-                self._update_time_instants_addition()
-            else:
-                self.left.add(other)
-        else:  # other.value > self.value
-            if not self.right:
-                other.parent = self
-                self.right = other
-                # update additional information recursively
-                self._update_full_interval()
-                self._update_time_instants_addition()
-            else:
-                self.right.add(other)
-
-    def all_overlaps(self, node, full_node=False):
-        """Find all the nodes in the subtree that represent an interval overlapping with the one of the given node.
-
-        Parameters
-        ----------
-        node : IntervalTreeNode
-        full_node : Bool
-            Whether to return the full node or the interval only.
-
-        Returns
-        -------
-            An iterable over the nodes that have an interval overlapping with the one of the given node.
-        """
-        if self.full_interval.overlaps(node.full_interval):
-            if self.overlaps(node):
-                if full_node:
-                    yield self
-                else:
-                    yield self._slice_cut(node)
-            if self.left:
-                yield from self.left.all_overlaps(node, full_node=full_node)
-            if self.right:
-                yield from self.right.all_overlaps(node, full_node=full_node)
-
     def minimum(self, with_parent=False):
         """Navigate recursively the left children.
 
@@ -245,15 +191,12 @@ class IntervalTree:
             self._rb_delete(overlap)
             overlap = self._find_overlap(datum_node)
 
-        self._add(datum_node)
-
-    def _add(self, node):
         if self.root:
-            self._add_in_subtree(self.root, node)
+            self._add_in_subtree(self.root, datum_node)
         else:
-            self.root = node
+            self.root = datum_node
 
-        self._rb_insert_fixup(node)
+        self._rb_insert_fixup(datum_node)
 
     def _add_in_subtree(self, subtree, node):
         if subtree.overlaps(node):
@@ -319,7 +262,7 @@ class IntervalTree:
                 if child:
                     child.parent = y
                 parent = y
-                is_left = y.is_left()  # TODO
+                is_left = y.is_left()
             else:
                 self._transplant(y, y.right)
                 y.right = node.right
@@ -337,29 +280,11 @@ class IntervalTree:
         if y_original_color.value:
             self._rb_recursive_delete_fixup(child, sibling, parent, is_left)
 
-    def all_overlaps(self, interval: Interval):
-        if interval:
-            node = self.__class__()._create_node(interval)
-            return IntervalTree(self.root.all_overlaps(node, full_node=True))
-        else:
-            return self
-
-    def _delete_overlapping_intervals(self, datum: value_type):
-
-        datum_node = self.__class__()._create_node(datum)
-
-        if self.root:
-            for overlapping_node in list(self.root.all_overlaps(datum_node, full_node=True)):
-                # TODO probably will have to change this when implementing red-black trees
-                datum_node = datum_node._merge_values(overlapping_node)
-                self._rb_delete(overlapping_node)
-
-        return datum_node
-
     def _find_overlap(self, node):
         return self._find_overlap_in_subtree(self.root, node)
 
     def _find_overlap_in_subtree(self, subtree, node):
+        # TODO in a more efficient way exploit extra data
         if subtree:
             if subtree.overlaps(node):
                 return subtree

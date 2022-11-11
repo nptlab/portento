@@ -85,6 +85,10 @@ class TestRedBlackTree:
         assert tree.root.left.right.value == intervals['beta']
         assert tree.root.right.value == intervals['gamma']
 
+        assert tree.root.time_instants == tree.root.length + \
+               tree.root.left.time_instants + \
+               tree.root.right.time_instants
+
         tree._right_rotate(tree.root)
 
         assert tree.root.value == intervals['x']
@@ -93,6 +97,10 @@ class TestRedBlackTree:
         assert tree.root.right.left.value == intervals['beta']
         assert tree.root.right.right.value == intervals['gamma']
 
+        assert tree.root.time_instants == tree.root.length + \
+               tree.root.left.time_instants + \
+               tree.root.right.time_instants
+
     @pytest.mark.parametrize('s', list(range(20)))
     def test_add_delete(self, s):
         random.seed(s)
@@ -100,7 +108,7 @@ class TestRedBlackTree:
         intervals = random.sample([Interval(x, x + 1) for x in range(n)], n)
         tree = IntervalTree()
 
-        for n_added, interval in [(i+1, interval) for i, interval in enumerate(intervals)]:
+        for n_added, interval in [(i + 1, interval) for i, interval in enumerate(intervals)]:
             tree.add(interval)
             assert black_root(tree)
             assert red_has_black_child(tree.root)
@@ -109,7 +117,7 @@ class TestRedBlackTree:
 
         intervals = random.sample(intervals, n)
 
-        for n_deleted, interval in [(i+1, interval) for i, interval in enumerate(intervals)]:
+        for n_deleted, interval in [(i + 1, interval) for i, interval in enumerate(intervals)]:
             node = find(tree.root, interval)
             tree._rb_delete(node)
             assert black_root(tree)
@@ -117,21 +125,21 @@ class TestRedBlackTree:
             assert same_q_black_paths(tree.root)
             assert height(tree.root) <= 2 * log2(n - n_deleted + 1)
 
-
     @pytest.mark.parametrize('s', list(range(20)))
     def test_update(self, s):
 
-        def visit(n):
-            if n:
-                if n.left:
-                    yield from visit(n.left)
-                yield n
-                if n.right:
-                    yield from visit(n.right)
+        def visit(subtree):
+            if subtree:
+                if subtree.left:
+                    yield from visit(subtree.left)
+                yield subtree
+                if subtree.right:
+                    yield from visit(subtree.right)
 
         random.seed(s)
-        n = 190
-        intervals = list(itertools.compress(map(lambda x: Interval(x, x+1, 'both'), range(n)), itertools.cycle([1,1,0])))
+        n = 10
+        intervals = list(
+            itertools.compress(map(lambda x: Interval(x, x + 1, 'both'), range(n)), itertools.cycle([1, 1, 0])))
         tree = IntervalTree(intervals)
         intervals = random.sample(intervals, len(intervals))
 
@@ -141,15 +149,15 @@ class TestRedBlackTree:
                 tree._rb_delete(to_delete)
                 nodes = list(visit(tree.root))
                 for node in nodes:
-                    all_instants = node.value.length
+                    all_instants = node.length
                     if node.left:
                         all_instants += node.left.time_instants
                     if node.right:
                         all_instants += node.right.time_instants
 
                     assert node.time_instants == all_instants, f"{node.value, node.time_instants}" \
-                                                           f"{(node.left.value, node.left.time_instants) if node.left else None}" \
-                                                           f"{(node.right.value, node.right.time_instants )if node.right else None}"
+                                                               f"{(node.left.value, node.left.time_instants) if node.left else None}" \
+                                                               f"{(node.right.value, node.right.time_instants) if node.right else None}"
 
         """for interval in intervals:
             tree.add(interval)  # reinsert interval

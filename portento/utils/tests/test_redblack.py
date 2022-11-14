@@ -139,7 +139,7 @@ class TestRedBlackTree:
         random.seed(s)
         n = 190
         intervals = list(
-            itertools.compress(map(lambda x: Interval(x, x + 1, 'both'), range(n)), itertools.cycle([1, 0, 1, 1, 0])))
+            itertools.compress(map(lambda x: Interval(x, x + 1, 'right'), range(n)), itertools.cycle([1, 0, 1, 1, 0])))
         tree = IntervalTree(intervals)
         intervals = random.sample(intervals, len(intervals))
 
@@ -148,21 +148,31 @@ class TestRedBlackTree:
             if to_delete:
                 tree._rb_delete(to_delete)
                 for node in visit(tree.root):
-                    all_instants = node.length
-                    if node.left:
-                        all_instants += node.left.time_instants
-                    if node.right:
-                        all_instants += node.right.time_instants
+                    all_instants = node.length + \
+                                   (node.left.time_instants if node.left else 0) + \
+                                   (node.right.time_instants if node.right else 0)
+                    full_interval = merge_interval(node.value,
+                                                   node.left.full_interval if node.left else None,
+                                                   node.right.full_interval if node.right else None)
 
                     assert node.time_instants == all_instants
+                    assert node.full_interval == full_interval, f"{node.value, node.full_interval}" \
+                                                                f"{node.left.full_interval if node.left else None}" \
+                                                                f"{node.right.full_interval if node.right else None}" \
+                                                                f"INTERVAL DELETED: {interval}"
 
         for interval in intervals:
             tree.add(interval)  # reinsert interval
             for node in visit(tree.root):
-                all_instants = node.value.length
-                if node.left:
-                    all_instants += node.left.time_instants
-                if node.right:
-                    all_instants += node.right.time_instants
+                all_instants = node.length + \
+                               (node.left.time_instants if node.left else 0) + \
+                               (node.right.time_instants if node.right else 0)
+                full_interval = merge_interval(node.value,
+                                               node.left.full_interval if node.left else None,
+                                               node.right.full_interval if node.right else None)
 
                 assert node.time_instants == all_instants
+                assert node.full_interval == full_interval, f"{node.value, node.full_interval}" \
+                                                                f"{node.left.full_interval if node.left else None}" \
+                                                                f"{node.right.full_interval if node.right else None}"
+

@@ -126,7 +126,6 @@ class IntervalTreeNode:
         self._update_time_instants(operator.sub)
 
     def _compute_full_interval(self):
-        # TODO one unique update operation, an higher-order function
         """Update full_interval.
 
         """
@@ -140,21 +139,21 @@ class IntervalTreeNode:
         """
         parent = self.parent
         while parent:
-            self.parent._compute_full_interval()
+            parent._compute_full_interval()
             parent = parent.parent
 
     def _update_full_interval_add(self):
         self._update_full_interval()
 
     def _update_full_interval_delete(self):
+
         if self.parent:
-            if self.is_left():
-                sibling = self.parent.right
-            else:
-                sibling = self.parent.right
+            sibling = self.parent.right if self.is_left() else self.parent.left
 
             self.parent.full_interval = merge_interval(self.parent.value,
-                                                       sibling.full_interval if sibling else None)
+                                                       sibling.full_interval if sibling else None,
+                                                       self.left.full_interval if self.left else None,
+                                                       self.right.full_interval if self.right else None)
             self.parent._update_full_interval()
 
     def _merge_values(self, other):

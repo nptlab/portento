@@ -93,21 +93,25 @@ class IntervalTreeNode:
 
         return self if not with_parent else (self, (self.parent if self else None))
 
-    def _compute_full_interval(self):
-        # TODO one unique update operation, an higher-order function
-        """Recursively update full_interval navigating through parents
+    def _compute_data(self):
+        self._compute_time_instants()
+        self._compute_full_interval()
 
-        """
-        self.full_interval = merge_interval(self.value, self.left.full_interval if self.left else None,
-                                            self.right.full_interval if self.right else None)
+    def _update_data_add(self):
+        self._update_time_instants_add()
+        self._update_full_interval_add()
+
+    def _update_data_delete(self):
+        self._update_time_instants_delete()
+        self._update_full_interval_delete()
 
     def _compute_time_instants(self):
         self.time_instants = sum([self.length,
-                             (self.left.time_instants if self.left else 0),
-                             (self.right.time_instants if self.right else 0)])
+                                  (self.left.time_instants if self.left else 0),
+                                  (self.right.time_instants if self.right else 0)])
 
     def _update_time_instants(self, update_op):
-        """Recursively update full_interval navigating through parents
+        """Iteratively update the count of time instants navigating through parents
 
         """
         parent = self.parent
@@ -120,6 +124,38 @@ class IntervalTreeNode:
 
     def _update_time_instants_delete(self):
         self._update_time_instants(operator.sub)
+
+    def _compute_full_interval(self):
+        # TODO one unique update operation, an higher-order function
+        """Update full_interval.
+
+        """
+        self.full_interval = merge_interval(self.value,
+                                            self.left.full_interval if self.left else None,
+                                            self.right.full_interval if self.right else None)
+
+    def _update_full_interval(self):
+        """
+
+        """
+        parent = self.parent
+        while parent:
+            self.parent._compute_full_interval()
+            parent = parent.parent
+
+    def _update_full_interval_add(self):
+        self._update_full_interval()
+
+    def _update_full_interval_delete(self):
+        if self.parent:
+            if self.is_left():
+                sibling = self.parent.right
+            else:
+                sibling = self.parent.right
+
+            self.parent.full_interval = merge_interval(self.parent.value,
+                                                       sibling.full_interval if sibling else None)
+            self.parent._update_full_interval()
 
     def _merge_values(self, other):
         return IntervalTreeNode(merge_interval(self.value, other.value))
@@ -209,7 +245,7 @@ class IntervalTree:
                     self._add_in_subtree(subtree.right, node)
                     return
 
-        node._update_time_instants_add()
+        node._update_data_add()
 
     def _rb_delete(self, node: IntervalTreeNode):
         if not node:
@@ -217,7 +253,7 @@ class IntervalTree:
 
         y = node
         y_original_color = Color.RED if y and y.color == Color.RED else Color.BLACK
-        y._update_time_instants_delete()
+        y._update_data_delete()
         if not node.left:
             child = node.right
             is_left = node.is_left()
@@ -249,7 +285,7 @@ class IntervalTree:
             y_original_color = Color.RED if y and y.color == Color.RED else Color.BLACK
             child = y.right  # right child of node's successor in its subtree
             is_left = y.is_left()
-            y._update_time_instants_delete()
+            y._update_data_delete()
             if y.parent == node:  # y == node.right
                 if child:
                     child.parent = y
@@ -266,8 +302,8 @@ class IntervalTree:
             y.left.parent = y
             sibling = parent.right if is_left else parent.left
             y.color = node.color
-            y._compute_time_instants()
-            y._update_time_instants_add()
+            y._compute_data()
+            y._update_data_add()
 
         if y_original_color.value:
             self._rb_recursive_delete_fixup(child, sibling, parent, is_left)
@@ -301,7 +337,6 @@ class IntervalTree:
 
         if substitute:
             substitute.parent = to_substitute.parent
-            substitute._compute_time_instants()
 
     def _left_rotate(self, node: IntervalTreeNode):
         pivot = node.right
@@ -321,8 +356,8 @@ class IntervalTree:
             node.parent = pivot
 
             # TODO this could be more efficient
-            node._compute_time_instants()
-            pivot._compute_time_instants()
+            node._compute_data()
+            pivot._compute_data()
 
         else:
             raise TypeError("Left rotation is impossible.")
@@ -344,8 +379,8 @@ class IntervalTree:
             pivot.right = node
             node.parent = pivot
 
-            node._compute_time_instants()
-            pivot._compute_time_instants()
+            node._compute_data()
+            pivot._compute_data()
 
         else:
             raise TypeError("Right rotation is impossible.")

@@ -79,7 +79,9 @@ class IntervalTreeNode:
         -------
             True if the node is left child of its parent
         """
-        return True if self.parent and self.parent.left and self.value == self.parent.left.value else False
+        if self.parent and self.parent.left:
+            return self.value == self.parent.left.value
+        return False
 
     def minimum(self, with_parent=False):
         """Navigate recursively the left children.
@@ -202,6 +204,7 @@ class IntervalTree:
         datum : Interval
 
         """
+        print(f"ADDING {datum}")
         datum_node = self.__class__()._create_node(datum)
         datum_node = self._merge_all_overlap(datum_node)
 
@@ -234,7 +237,7 @@ class IntervalTree:
 
         node._update_data_add()
 
-    def _rb_delete(self, node: IntervalTreeNode):
+    def _delete(self, node: IntervalTreeNode):
         if not node:
             raise AttributeError("The node to delete must be not None.")
 
@@ -242,42 +245,28 @@ class IntervalTree:
         y_original_color = Color.RED if y and y.color == Color.RED else Color.BLACK
         y._update_data_delete()
         if not node.left:
-            child = node.right
-            is_left = node.is_left()
-            parent = node.parent
-            if parent:
-                if is_left:
-                    sibling = parent.right
-                else:
-                    sibling = parent.left
-            else:
-                sibling = None
-            self._transplant(node, node.right)
+            child, sibling, parent, is_left = self.__delete_node_has_no_child_left(node)
 
         elif not node.right:
-            child = node.left
-            is_left = node.is_left()
-            parent = node.parent
-            if parent:
-                if is_left:
-                    sibling = parent.right
-                else:
-                    sibling = parent.left
-            else:
-                sibling = None
-            self._transplant(node, node.left)
+            child, sibling, parent, is_left = self.__delete_node_has_no_child_right(node)
 
         else:  # node has 2 children
+            print("BOTH NODE")
             y, parent = node.right.minimum(with_parent=True)  # y is the successor of node
+            print(f"NODE, SUCCESSOR, PARENT: : {node}, {y}, {parent}")
             y_original_color = Color.RED if y and y.color == Color.RED else Color.BLACK
             child = y.right  # right child of node's successor in its subtree
             is_left = y.is_left()
             y._update_data_delete()
-            if y.parent == node:  # y == node.right
+            if y.parent == node:  # node.right has no left child
+                print("y.parent == node")
                 if child:
+                    print(f"has child {child}")
                     child.parent = y
                 parent = y
+                print(f"parent is: {parent}, {parent.left}, {parent.right}")
                 is_left = y.is_left()
+                print(f"{is_left}")
             else:
                 self._transplant(y, y.right)
                 y.right = node.right
@@ -287,19 +276,58 @@ class IntervalTree:
             self._transplant(node, y)
             y.left = node.left
             y.left.parent = y
+            print(f"parent (y) is: {parent}, {parent.left}, {parent.right}")
             sibling = parent.right if is_left else parent.left
+            print(f"SIBLING IS {sibling}, {is_left}, {sibling.parent if sibling else None}")
             y.color = node.color
             y._compute_data()
             y._update_data_add()
         if y_original_color.value:
             self._rb_recursive_delete_fixup(child, sibling, parent, is_left)
 
+    def __delete_node_has_no_child_left(self, node):
+        print("NOT NODE LEFT")
+        child = node.right
+        is_left = node.is_left()
+        parent = node.parent
+        if parent:
+            if is_left:
+                sibling = parent.right
+            else:
+                sibling = parent.left
+        else:
+            sibling = None
+        self._transplant(node, node.right)
+        return child, sibling, parent, is_left
+
+    def __delete_node_has_no_child_right(self, node):
+        print("NOT NODE RIGHT")
+        child = node.left
+        is_left = node.is_left()
+        parent = node.parent
+        if parent:
+            if is_left:
+                sibling = parent.right
+            else:
+                sibling = parent.left
+        else:
+            sibling = None
+        self._transplant(node, node.left)
+        return child, sibling, parent, is_left
+
+    def __delete_node_has_both_children(self, node):
+        child = None
+        sibling = None
+        parent = None
+        is_left = None
+        return child, sibling, parent, is_left
+
     def _merge_all_overlap(self, node):
 
         overlap = self._find_overlap(node)
 
         while overlap:
-            self._rb_delete(overlap)
+            self._delete(overlap)
             node = self.__class__()._merge(node, overlap)
             overlap = self._find_overlap(node)
 
@@ -470,6 +498,7 @@ class IntervalTree:
     def __delete_fixup_case_1(self, node, sibling, parent, is_left):
         # case 1: sibling is RED.
         # This becomes case 2, 3 or 4.
+        print("IN CASE 1")
         if is_left:
             sibling.color = Color.BLACK
             parent.color = Color.RED
@@ -485,6 +514,7 @@ class IntervalTree:
 
     def __delete_fixup_case_2(self, node, sibling, parent, is_left):
         # case 2: sibling is black with both children black.
+        print("IN CASE 2")
         if is_left:
             sibling.color = Color.RED
             node = parent  # it can't be None
@@ -510,6 +540,7 @@ class IntervalTree:
         # case 3: right sibling is black with right child black and left child red or
         # case 3: left sibling is black with left child black and right child red
         # this becomes case 4.
+        print("IN CASE 3")
         if is_left:
             sibling.left.color = Color.BLACK
             sibling.color = Color.RED
@@ -523,9 +554,12 @@ class IntervalTree:
 
         self._rb_recursive_delete_fixup(node, sibling, parent, is_left)
 
-    def __delete_fixup_case_4(self, node, sibling, parent, is_left):
+    def __delete_fixup_case_4(self, _, sibling, parent, is_left):
         # case 4: right sibling is black with right child red or
         # case 4: left sibling is black with left child red
+        print("IN CASE 4")
+        if not sibling:
+            raise Exception("No sibling")
         if is_left:
             if sibling:
                 sibling.color = parent.color if parent else Color.BLACK

@@ -119,7 +119,7 @@ class TestRedBlackTree:
 
         for n_deleted, interval in [(i + 1, interval) for i, interval in enumerate(intervals)]:
             node = find(tree.root, interval)
-            tree._rb_delete(node)
+            tree._delete(node)
             assert black_root(tree)
             assert red_has_black_child(tree.root)
             assert same_q_black_paths(tree.root)
@@ -146,7 +146,7 @@ class TestRedBlackTree:
         for interval in intervals:
             to_delete = tree._find_overlap(IntervalTreeNode(interval))
             if to_delete:
-                tree._rb_delete(to_delete)
+                tree._delete(to_delete)
                 for node in visit(tree.root):
                     all_instants = node.length + \
                                    (node.left.time_instants if node.left else 0) + \
@@ -186,6 +186,6 @@ class TestRedBlackTree:
         intervals = random.sample(intervals, len(intervals))
         for interval in intervals:
             node = find(tree.root, interval)
-            tree._rb_delete(node)
+            tree._delete(node)
             with pytest.raises(Exception):
                 find(tree.root, interval)

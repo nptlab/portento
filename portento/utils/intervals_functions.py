@@ -18,6 +18,14 @@ def compute_closure(closed_left, closed_right):
     return closed
 
 
+def _left_tuple(interval):
+    return interval.left, 0 if interval.closed_left else 1
+
+
+def _right_tuple(interval):
+    return interval.right, 1 if interval.closed_right else 0
+
+
 def merge_interval(*intervals):
     """Merge pandas Interval objects
 
@@ -30,8 +38,8 @@ def merge_interval(*intervals):
         merged_interval : pandas Interval
         """
     it_min, it_max = tee(filter(lambda x: bool(x), intervals), 2)
-    min_interval = min(it_min, key=lambda x: (x.left, 0 if x.closed_left else 1))
-    max_interval = max(it_max, key=lambda x: (x.right, 1 if x.closed_right else 0))
+    min_interval = min(it_min, key=lambda x: _left_tuple(x))
+    max_interval = max(it_max, key=lambda x: _right_tuple(x))
 
     closed = compute_closure(min_interval.closed_left, max_interval.closed_right)
 
@@ -70,6 +78,11 @@ def cut_interval(interval: pd.Interval, cutting_interval: pd.Interval) -> pd.Int
     closed = compute_closure(closed_left, closed_right)
 
     return pd.Interval(new_left, new_right, closed)
+
+
+def contains_interval(container_interval, contained_interval):
+    return _left_tuple(container_interval) <= _left_tuple(contained_interval) and \
+           _right_tuple(container_interval) >= _right_tuple(contained_interval)
 
 
 def _mapping_function(datum, interval_type):

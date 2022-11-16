@@ -3,11 +3,11 @@ from pandas import Interval
 from numpy import number
 from enum import Enum
 from dataclasses import dataclass, field
-from portento.utils.intervals_functions import cut_interval, merge_interval
+from portento.utils.intervals_functions import cut_interval, merge_interval, contains_interval
 import operator
 
 
-# TODO delete when adding one by one (if overlaps than delete, merge and reinsert until reach a leaf)
+# TODO change str
 
 class Color(Enum):
     RED = False
@@ -156,15 +156,8 @@ class IntervalTreeNode:
                                                        self.right.full_interval if self.right else None)
             self.parent._update_full_interval()
 
-    def _merge_values(self, other):
-        return IntervalTreeNode(merge_interval(self.value, other.value))
-
-    def _slice_cut(self, other):
-        return cut_interval(self.value, other.value)
-
 
 class IntervalTree:
-    # TODO transform in proper red-black tree_view of intervals
     """The data structure that holds intervals.
 
     """
@@ -210,20 +203,15 @@ class IntervalTree:
 
         """
         datum_node = self.__class__()._create_node(datum)
-        overlap = self._find_overlap(datum_node)
-        while overlap:
-            datum_node = self.__class__()._merge(datum_node, overlap)
-            if not datum_node:
-                raise Exception(f"Not datum! {overlap.value}")
-            self._rb_delete(overlap)
-            overlap = self._find_overlap(datum_node)
+        datum_node = self._merge_all_overlap(datum_node)
 
-        if self.root:
-            self._add_in_subtree(self.root, datum_node)
-        else:
-            self.root = datum_node
+        if datum_node:
+            if self.root:
+                self._add_in_subtree(self.root, datum_node)
+            else:
+                self.root = datum_node
 
-        self._rb_insert_fixup(datum_node)
+            self._rb_insert_fixup(datum_node)
 
     def _add_in_subtree(self, subtree, node):
         if subtree.overlaps(node):
@@ -303,23 +291,33 @@ class IntervalTree:
             y.color = node.color
             y._compute_data()
             y._update_data_add()
-
         if y_original_color.value:
             self._rb_recursive_delete_fixup(child, sibling, parent, is_left)
+
+    def _merge_all_overlap(self, node):
+
+        overlap = self._find_overlap(node)
+
+        while overlap:
+            self._rb_delete(overlap)
+            node = self.__class__()._merge(node, overlap)
+            overlap = self._find_overlap(node)
+
+        return node
 
     def _find_overlap(self, node):
         return self._find_overlap_in_subtree(self.root, node)
 
     def _find_overlap_in_subtree(self, subtree, node):
-        # TODO in a more efficient way exploit extra data
         if subtree:
-            if subtree.overlaps(node):
-                return subtree
-            else:
-                overlap = self._find_overlap_in_subtree(subtree.left, node)
-                if not overlap:
-                    overlap = self._find_overlap_in_subtree(subtree.right, node)
-                return overlap
+            if subtree.full_interval.overlaps(node.value):
+                if subtree.overlaps(node):
+                    return subtree
+                else:
+                    overlap = self._find_overlap_in_subtree(subtree.left, node)
+                    if not overlap:
+                        overlap = self._find_overlap_in_subtree(subtree.right, node)
+                    return overlap
 
         return None
 
@@ -354,12 +352,11 @@ class IntervalTree:
             pivot.left = node
             node.parent = pivot
 
-            # TODO this could be more efficient
             node._compute_data()
             pivot._compute_data()
 
         else:
-            raise TypeError("Left rotation is impossible.")
+            raise Exception(f"left rotation is impossible. {node}, {node.left}")
 
     def _right_rotate(self, node: IntervalTreeNode):
         pivot = node.left
@@ -382,7 +379,7 @@ class IntervalTree:
             pivot._compute_data()
 
         else:
-            raise TypeError("Right rotation is impossible.")
+            raise Exception(f"left rotation is impossible. {node}, {node.right}")
 
     def _rb_insert_fixup(self, node: IntervalTreeNode):
         while node.parent and node.parent.color is Color.RED:
@@ -527,7 +524,7 @@ class IntervalTree:
         self._rb_recursive_delete_fixup(node, sibling, parent, is_left)
 
     def __delete_fixup_case_4(self, node, sibling, parent, is_left):
-        # case 4: right sibling is black with right child red
+        # case 4: right sibling is black with right child red or
         # case 4: left sibling is black with left child red
         if is_left:
             if sibling:

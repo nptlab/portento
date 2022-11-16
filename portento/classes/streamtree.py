@@ -24,11 +24,14 @@ class StreamTreeNode(IntervalTreeNode):
             yield from iter(self.right)
 
     def __str__(self):
-        return str(super().__str__(), str(self.u), str(self.v))
+        return f"{self.value, self.u, self.v}"
 
     @property
     def length(self):
         raise NotImplementedError("This metric has no meaning in this data structure.")  # TODO if you need...
+
+    def is_left(self):
+        return super().is_left() and self.u == self.parent.left.u and self.v == self.parent.left.v
 
     def _compute_time_instants(self):
         pass
@@ -64,8 +67,11 @@ class StreamTree(IntervalTree):
         if isinstance(data, Interval):
             return StreamTreeNode(data)
         elif isinstance(data, Link):
-            return StreamTreeNode(data.interval, u=data.u, v=data.v)
+            return StreamTreeNode(value=data.interval, u=data.u, v=data.v)
 
     @classmethod
     def _merge(cls, node_1, node_2):
-        return StreamTreeNode(merge_interval(node_1.value, node_2.value), u=node_2.u, v=node_2.v)
+        if node_1.u == node_1.u and node_1.v == node_2.v:
+            return StreamTreeNode(merge_interval(node_1.value, node_2.value), u=node_1.u, v=node_1.v)
+        else:
+            raise AttributeError("Two nodes must have same u and v")

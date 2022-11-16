@@ -173,6 +173,19 @@ class TestRedBlackTree:
 
                 assert node.time_instants == all_instants
                 assert node.full_interval == full_interval, f"{node.value, node.full_interval}" \
-                                                                f"{node.left.full_interval if node.left else None}" \
-                                                                f"{node.right.full_interval if node.right else None}"
+                                                            f"{node.left.full_interval if node.left else None}" \
+                                                            f"{node.right.full_interval if node.right else None}"
 
+    @pytest.mark.parametrize('s', list(range(20)))
+    def test_delete(self, s):
+        random.seed(s)
+        n = 190
+        intervals = list(
+            itertools.compress(map(lambda x: Interval(x, x + 1, 'right'), range(n)), itertools.cycle([1, 0, 1, 1, 0])))
+        tree = IntervalTree(intervals)
+        intervals = random.sample(intervals, len(intervals))
+        for interval in intervals:
+            node = find(tree.root, interval)
+            tree._rb_delete(node)
+            with pytest.raises(Exception):
+                find(tree.root, interval)

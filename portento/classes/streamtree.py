@@ -31,7 +31,15 @@ class StreamTreeNode(IntervalTreeNode):
         raise NotImplementedError("This metric has no meaning in this data structure.")  # TODO if you need...
 
     def is_left(self):
-        return super().is_left() and self.u == self.parent.left.u and self.v == self.parent.left.v
+        return super().is_left() and \
+               self.u == self.parent.left.u and \
+               self.v == self.parent.left.v
+
+    def get_sibling(self):
+        if self.parent:
+            return self.parent.right if self.is_left() else self.parent.left
+        else:
+            return None
 
     def _compute_time_instants(self):
         pass

@@ -104,7 +104,7 @@ class TestRedBlackTree:
     @pytest.mark.parametrize('s', list(range(20)))
     def test_add_delete(self, s):
         random.seed(s)
-        n = 127
+        n = 190
         intervals = random.sample([Interval(x, x + 1) for x in range(n)], n)
         tree = IntervalTree()
 

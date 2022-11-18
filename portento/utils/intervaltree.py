@@ -356,8 +356,7 @@ class IntervalTree:
             self._rb_recursive_delete_fixup(child, sibling, parent, is_left)
 
     def __delete_node_has_no_children(self, node):
-        # print("NO CHILD")
-        # print(node.color)
+        print("NO CHILD")
         is_left = node.is_left()
         parent = node.parent
         sibling = node.get_sibling()
@@ -394,13 +393,10 @@ class IntervalTree:
 
     def __delete_node_has_both_children_successor(self, node, y):
         print("YES SUCCESSOR")
-        child = y.right
-        is_left = y.is_left()
         self._transplant(node, y)
         y.left = node.left
         y.left.parent = y
-        sibling = y.right if is_left else y.left
-        return child, sibling, y, is_left
+        return y.right, y.left, y, False
 
     def __delete_node_has_both_children_no_successor(self, node, y, parent):
         print("NO SUCCESSOR")
@@ -554,6 +550,15 @@ class IntervalTree:
         if node == self.root or (node.color == Color.RED if node else False):
             if node:
                 node.color = Color.BLACK
+            try:
+                print("Now evaluating assertions")
+                assert black_root(self)
+                assert red_has_black_child(self.root)
+                assert same_q_black_paths(self.root)
+                assert height(self.root) <= 2 * log2(len(list(self)) + 1)
+                print("end of evaluation")
+            except Exception as e:
+                raise Exception("something wrong in delete fixup")
         else:
             if sibling.color == Color.RED if sibling else False:
                 # case 1: sibling is RED
@@ -631,13 +636,25 @@ class IntervalTree:
         # case 4: right sibling is black with right child red or
         # case 4: left sibling is black with left child red
         # print("IN CASE 4")
-        parent_original_color = parent.color if parent else Color.BLACK
-        if parent:
-            parent.color = Color.BLACK
-
         if is_left:
+            sibling.color = parent.color
+            parent.color = Color.BLACK
+            if sibling.right:
+                sibling.right.color = Color.BLACK
+
+            self._left_rotate(parent)
+
+        else:
+            sibling.color = parent.color
+            parent.color = Color.BLACK
+            if sibling.left:
+                sibling.left.color = Color.BLACK
+
+            self._right_rotate(parent)
+
+        """if is_left:
             if sibling:
-                sibling.color = parent_original_color
+                sibling.color = Color.BLACK
                 if sibling.right:
                     sibling.right.color = Color.BLACK
 
@@ -655,7 +672,7 @@ class IntervalTree:
             try:
                 self._right_rotate(parent)
             except Exception as e:
-                raise Exception("rotation right was not possible")
+                raise Exception("rotation right was not possible")"""
 
         # print("NOW I'M THE ROOT!")
         self._rb_recursive_delete_fixup(self.root, None, None, True)

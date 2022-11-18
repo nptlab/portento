@@ -5,6 +5,80 @@ from enum import Enum
 from dataclasses import dataclass, field
 from portento.utils.intervals_functions import cut_interval, merge_interval, contains_interval
 import operator
+from math import log2
+
+
+def black_root(tree):
+    if tree.root:
+        return tree.root.color.value  # BLACK
+
+    return True
+
+
+def red_has_black_child(node):
+    if not node:
+        return True
+
+    if not node.color.value:  # RED
+        return all([not node.left or node.left.color.value,
+                    not node.right or node.right.color.value,
+                    red_has_black_child(node.left) and red_has_black_child(node.right)])
+
+    return red_has_black_child(node.left) and red_has_black_child(node.right)
+
+
+def height(node):
+    if not node:
+        return 0
+    return 1 + max(height(node.left), height(node.right))
+
+
+def same_q_black_paths(node):
+    if not node:
+        return True
+    return q_black_hidden(node, node.left, 0) == q_black_hidden(node, node.right, 0)
+
+
+def q_black_hidden(node, node_next, q):
+    new_q = q + (1 if node.color.value else 0)
+    if not node_next:
+        return new_q
+    else:
+        compute_left = q_black_hidden(node_next, node_next.left, new_q)
+        compute_right = q_black_hidden(node_next, node_next.right, new_q)
+        if compute_left == compute_right:
+            return compute_left
+        else:  # this must never happen
+            raise Exception(f"compute_left={compute_left}, compute_right={compute_right}")
+
+
+def print_tree(n):
+    if n:
+        try:
+            parent_q_black = q_black_hidden(n.parent, n.parent.left, 0) + q_black_hidden(n.parent, n.parent.right, 0) \
+                if n.parent else 0
+        except Exception as e:
+            parent_q_black = "HERE'S THE ERROR!"
+        try:
+            left_q_black = q_black_hidden(n.left, n.left.left, 0) + q_black_hidden(n.left, n.left.right, 0) \
+                if n.left else 0
+        except Exception as e:
+            left_q_black = "HERE'S THE ERROR!"
+        try:
+            right_q_black = q_black_hidden(n.right, n.right.left, 0) + q_black_hidden(n.right, n.right.right, 0) \
+                if n.right else 0
+        except Exception as e:
+            right_q_black = "HERE'S THE ERROR!"
+
+        print(n, n.color, ": \n",
+              f"parent:{n.parent if n.parent else None}, {parent_q_black}\n",
+              f"left:{n.left}, {left_q_black}, {n.left.color if n.left else None}\n",
+              f"right:{n.right}, {right_q_black}, {n.right.color if n.right else None}\n",
+              "=====")
+        if n.left:
+            print_tree(n.left)
+        if n.right:
+            print_tree(n.right)
 
 
 # TODO change str
@@ -211,6 +285,7 @@ class IntervalTree:
 
         """
         datum_node = self.__class__()._create_node(datum)
+        # print(f"ADDING {datum_node}")
         datum_node = self._merge_all_overlap(datum_node)
 
         if datum_node:
@@ -220,6 +295,20 @@ class IntervalTree:
                 self.root = datum_node
 
             self._rb_insert_fixup(datum_node)
+
+        node = datum_node
+
+        try:
+            assert black_root(self)
+            assert red_has_black_child(self.root)
+            assert same_q_black_paths(self.root)
+            assert height(self.root) <= 2 * log2(len(list(self)) + 1)
+        except Exception as e:
+            print(f"NODE IS: {node}, {node.color}")
+            print(f"PARENT IS {node.parent}")
+            print(f"LEFT IS {node.left}")
+            print(f"RIGHT IS {node.right}")
+            print("XXXXX")
 
     def _add_in_subtree(self, subtree, node):
         if subtree.overlaps(node):
@@ -245,10 +334,10 @@ class IntervalTree:
     def _delete(self, node: IntervalTreeNode):
         if not node:
             raise AttributeError("The node to delete must be not None.")
-        print(f"DELETING {node}")
+        # print(f"DELETING {node}")
         y = node
         y_original_color = y.color
-        print(y_original_color)
+        # print(y_original_color)
         y._update_data_delete()
 
         if not node.left and not node.right:
@@ -261,24 +350,14 @@ class IntervalTree:
             child, sibling, parent, is_left = self.__delete_node_has_no_child_right(y)
 
         else:  # node has 2 children
-            y, parent = node.right.minimum(with_parent=True)  # y is the successor of node
-            y_original_color = y.color
-            y._update_data_delete()
-            if parent == node:  # node.right has no left child
-                child, sibling, parent, is_left = self.__delete_node_has_both_children_successor(node, y)
-            else:
-                child, sibling, parent, is_left = self.__delete_node_has_both_children_no_successor(node, y, parent)
+            child, sibling, parent, is_left, y_original_color = self.__delete_node_has_both_children(y)
 
-            y.color = node.color
-            y._compute_data()
-            y._update_data_add()
-
-        print(y_original_color)
         if y_original_color == Color.BLACK:
             self._rb_recursive_delete_fixup(child, sibling, parent, is_left)
 
     def __delete_node_has_no_children(self, node):
-        print("NO CHILD")
+        # print("NO CHILD")
+        # print(node.color)
         is_left = node.is_left()
         parent = node.parent
         sibling = node.get_sibling()
@@ -297,13 +376,31 @@ class IntervalTree:
         self._transplant(node, child)
         return child, child.get_sibling(), child.parent, child.is_left()
 
+    def __delete_node_has_both_children(self, node):
+        print("HAS BOTH CHILDREN")
+        y, parent = node.right.minimum(with_parent=True)  # y is the successor of node
+        y_original_color = y.color
+        y._update_data_delete()
+        if parent == node:  # node.right has no left child
+            child, sibling, parent, is_left = self.__delete_node_has_both_children_successor(node, y)
+        else:
+            child, sibling, parent, is_left = self.__delete_node_has_both_children_no_successor(node, y, parent)
+
+        y.color = node.color
+        y._compute_data()
+        y._update_data_add()
+
+        return child, sibling, parent, is_left, y_original_color
+
     def __delete_node_has_both_children_successor(self, node, y):
         print("YES SUCCESSOR")
+        child = y.right
+        is_left = y.is_left()
         self._transplant(node, y)
         y.left = node.left
         y.left.parent = y
-        print(f"{y.right}, \n{y.left}, \n{y}, \n{False}")
-        return y.right, y.left, y, False
+        sibling = y.right if is_left else y.left
+        return child, sibling, y, is_left
 
     def __delete_node_has_both_children_no_successor(self, node, y, parent):
         print("NO SUCCESSOR")
@@ -316,10 +413,7 @@ class IntervalTree:
         self._transplant(node, y)
         y.left = node.left
         y.left.parent = y
-        print(f"parent (y) is: {parent}, {parent.left}, {parent.right}")
         sibling = parent.right if is_left else parent.left
-        print(f"SIBLING IS {sibling}, {is_left}, {sibling.parent if sibling else None}")
-        print(f"{child}, \n{sibling}, \n{parent}, \n{is_left}")
         return child, sibling, parent, is_left
 
     def _merge_all_overlap(self, node):
@@ -328,6 +422,15 @@ class IntervalTree:
 
         while overlap:
             self._delete(overlap)
+            try:
+                print("Now evaluating assertions")
+                assert black_root(self)
+                assert red_has_black_child(self.root)
+                assert same_q_black_paths(self.root)
+                assert height(self.root) <= 2 * log2(len(list(self)) + 1)
+                print("end of evaluation")
+            except Exception as e:
+                raise Exception("--> game over <--")
             node = self.__class__()._merge(node, overlap)
             overlap = self._find_overlap(node)
 
@@ -452,61 +555,39 @@ class IntervalTree:
             if node:
                 node.color = Color.BLACK
         else:
-            if is_left:
-                if sibling.color == Color.RED if sibling else False:
-                    # case 1: sibling is RED
-                    # this becomes case 2, 3 or 4.
-                    self.__delete_fixup_case_1(node, sibling, parent, is_left)
+            if sibling.color == Color.RED if sibling else False:
+                # case 1: sibling is RED
+                # this becomes case 2, 3 or 4.
+                self.__delete_fixup_case_1(node, sibling, parent, is_left)
 
-                elif sibling and \
-                    (sibling.left.color.value if sibling.left else True) and \
-                    (sibling.right.color.value if sibling.right else True):
-                    # case 2: sibling is black with both children black
-                    self.__delete_fixup_case_2(node, sibling, parent, is_left)
+            elif sibling and \
+                (sibling.left.color.value if sibling.left else True) and \
+                (sibling.right.color.value if sibling.right else True):
+                # case 2: sibling is black with both children black
+                self.__delete_fixup_case_2(node, sibling, parent, is_left)
 
-                elif sibling and (sibling.right.color.value if sibling.right else True):
-                    # case 3: sibling is black with right child black and left child red
-                    # this becomes case 4.
-                    self.__delete_fixup_case_3(node, sibling, parent, is_left)
+            elif is_left and \
+                sibling and \
+                (sibling.right.color.value if sibling.right else True):
+                # case 3: sibling is black with right child black and left child red
+                # this becomes case 4.
+                self.__delete_fixup_case_3(node, sibling, parent, is_left)
 
-                else:
-                    # case 4: sibling is black with right child red
-                    print(f"node:{node},"
-                          f"sibling:{sibling},"
-                          f"parent:{parent}"
-                          f"is_left:{is_left}")
-                    self.__delete_fixup_case_4(node, sibling, parent, is_left)
+            elif not is_left and \
+                sibling and \
+                (sibling.left.color.value if sibling.left else True):
+                # case 3: sibling is black with left child black and right child red
+                # this becomes case 4.
+                self.__delete_fixup_case_3(node, sibling, parent, is_left)
 
             else:
-                # as before with left and right swapped
-                if sibling.color == Color.RED if sibling else False:
-                    # case 1: sibling is RED
-                    # this becomes case 2, 3 or 4.
-                    self.__delete_fixup_case_1(node, sibling, parent, is_left)
-
-                elif sibling and \
-                    (sibling.left.color.value if sibling.left else True) and \
-                    (sibling.right.color.value if sibling.right else True):
-                    # case 2: sibling is black with both children black
-                    self.__delete_fixup_case_2(node, sibling, parent, is_left)
-
-                elif sibling and (sibling.left.color.value if sibling.left else True):
-                    # case 3: sibling is black with left child black and right child red
-                    # this becomes case 4.
-                    self.__delete_fixup_case_3(node, sibling, parent, is_left)
-
-                else:
-                    # case 4: sibling is black with left child red
-                    print(f"node:{node},"
-                          f"sibling:{sibling},"
-                          f"parent:{parent}"
-                          f"is_left:{is_left}")
-                    self.__delete_fixup_case_4(node, sibling, parent, is_left)
+                # case 4: sibling is black with right child red
+                self.__delete_fixup_case_4(node, sibling, parent, is_left)
 
     def __delete_fixup_case_1(self, node, sibling, parent, is_left):
         # case 1: sibling is RED.
         # This becomes case 2, 3 or 4.
-        print("IN CASE 1")
+        # print("IN CASE 1")
         if is_left:
             sibling.color = Color.BLACK
             parent.color = Color.RED
@@ -522,16 +603,10 @@ class IntervalTree:
 
     def __delete_fixup_case_2(self, node, sibling, parent, is_left):
         # case 2: sibling is black with both children black.
-        print("IN CASE 2")
+        # print("IN CASE 2")
         sibling.color = Color.RED
         is_left = parent.is_left()
         sibling = parent.parent.right if is_left else parent.parent.left if parent and parent.parent else None
-
-        print(f"node:{node},"
-              f"sibling:{sibling},"
-              f"parent:{parent}"
-              f"is_left:{is_left}")
-        print("XXX")
 
         self._rb_recursive_delete_fixup(parent, sibling, parent.parent, is_left)
 
@@ -539,15 +614,14 @@ class IntervalTree:
         # case 3: right sibling is black with right child black and left child red or
         # case 3: left sibling is black with left child black and right child red
         # this becomes case 4.
-        print("IN CASE 3")
+        # print("IN CASE 3")
+        sibling.color = Color.RED
         if is_left:
             sibling.left.color = Color.BLACK
-            sibling.color = Color.RED
             self._right_rotate(sibling)
             sibling = parent.right
         else:
             sibling.right.color = Color.BLACK
-            sibling.color = Color.RED
             self._left_rotate(sibling)
             sibling = parent.left
 
@@ -556,7 +630,7 @@ class IntervalTree:
     def __delete_fixup_case_4(self, node, sibling, parent, is_left):
         # case 4: right sibling is black with right child red or
         # case 4: left sibling is black with left child red
-        print("IN CASE 4")
+        # print("IN CASE 4")
         parent_original_color = parent.color if parent else Color.BLACK
         if parent:
             parent.color = Color.BLACK
@@ -567,22 +641,23 @@ class IntervalTree:
                 if sibling.right:
                     sibling.right.color = Color.BLACK
 
-            else:
-                raise Exception("LEFT ROTATE WON'T BE POSSIBLE")
-
-            self._left_rotate(parent)
+            try:
+                self._left_rotate(parent)
+            except Exception as e:
+                raise Exception("rotation left was not possible")
 
         else:
             if sibling:
                 sibling.color = parent_original_color
                 if sibling.left:
                     sibling.left.color = Color.BLACK
-            else:
-                raise Exception("LEFT ROTATE WON'T BE POSSIBLE")
 
-            self._right_rotate(parent)
+            try:
+                self._right_rotate(parent)
+            except Exception as e:
+                raise Exception("rotation right was not possible")
 
-        print("NOW I'M THE ROOT!")
+        # print("NOW I'M THE ROOT!")
         self._rb_recursive_delete_fixup(self.root, None, None, True)
 
     @classmethod

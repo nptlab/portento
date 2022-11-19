@@ -12,8 +12,8 @@ from portento.utils import Link, IntervalTree
 
 class Stream:
 
-    def __init__(self, links: Optional[Iterable[Link]] = list(), int_typ=type(None), **kwargs):
-        self._dict = StreamDict(links, int_typ, **kwargs)
+    def __init__(self, links: Optional[Iterable[Link]] = list(), int_typ=type(None)):
+        self._dict = StreamDict(links, int_typ)
         self._tree = StreamTree(links)
         self._time_instants = IntervalTree(map(lambda l: l.interval, links))
 

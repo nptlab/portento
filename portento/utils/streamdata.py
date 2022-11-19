@@ -7,9 +7,6 @@ from .intervaltree import IntervalTree
 from .sortstreamnodes import sort_nodes
 
 
-# TODO can give nodes information using lambdas!!!
-
-
 @dataclass(frozen=True, order=True)
 class Link:
     """Base dataclass containing all the information of a link of the stream.

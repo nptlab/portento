@@ -17,3 +17,11 @@ class TestIntervalMerge:
     def test_interval_merge(self, interval_1, interval_2, args):
         left, right, close = args
         assert merge_interval(interval_1, interval_2) == pd.Interval(left, right, close)
+
+    @pytest.mark.parametrize('intervals,args', [
+        ((pd.Interval(0, 1, 'neither'), pd.Interval(4, 5, 'left'), pd.Interval(2, 3, 'both')), (0, 5, 'neither')),
+        ((pd.Interval(5, 10, 'both'), pd.Interval(5, 6, 'neither'), pd.Interval(9, 10, 'neither')), (5, 10, 'both')),
+    ])
+    def test_interval_merge_iter(self, intervals, args):
+        left, right, close = args
+        assert merge_interval(*intervals) == pd.Interval(left, right, close)

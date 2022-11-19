@@ -1,9 +1,11 @@
+import itertools
+
 import pytest
 from pandas import Interval
 import random
 from math import log2
 
-from portento.utils import IntervalTree, IntervalTreeNode
+from portento.utils import IntervalTree, IntervalTreeNode, merge_interval
 
 
 def black_root(tree: IntervalTree):
@@ -83,6 +85,10 @@ class TestRedBlackTree:
         assert tree.root.left.right.value == intervals['beta']
         assert tree.root.right.value == intervals['gamma']
 
+        assert tree.root.time_instants == tree.root.length + \
+               tree.root.left.time_instants + \
+               tree.root.right.time_instants
+
         tree._right_rotate(tree.root)
 
         assert tree.root.value == intervals['x']
@@ -91,15 +97,19 @@ class TestRedBlackTree:
         assert tree.root.right.left.value == intervals['beta']
         assert tree.root.right.right.value == intervals['gamma']
 
+        assert tree.root.time_instants == tree.root.length + \
+               tree.root.left.time_instants + \
+               tree.root.right.time_instants
+
     @pytest.mark.parametrize('s', list(range(20)))
     def test_add_delete(self, s):
         random.seed(s)
-        n = 127
+        n = 190
         intervals = random.sample([Interval(x, x + 1) for x in range(n)], n)
         tree = IntervalTree()
 
-        for n_added, interval in [(i+1, interval) for i, interval in enumerate(intervals)]:
-            tree._rb_add(interval)
+        for n_added, interval in [(i + 1, interval) for i, interval in enumerate(intervals)]:
+            tree.add(interval)
             assert black_root(tree)
             assert red_has_black_child(tree.root)
             assert same_q_black_paths(tree.root)
@@ -107,10 +117,75 @@ class TestRedBlackTree:
 
         intervals = random.sample(intervals, n)
 
-        for n_deleted, interval in [(i+1, interval) for i, interval in enumerate(intervals)]:
+        for n_deleted, interval in [(i + 1, interval) for i, interval in enumerate(intervals)]:
             node = find(tree.root, interval)
-            tree._rb_delete(node)
+            tree._delete(node)
             assert black_root(tree)
             assert red_has_black_child(tree.root)
             assert same_q_black_paths(tree.root)
             assert height(tree.root) <= 2 * log2(n - n_deleted + 1)
+
+    @pytest.mark.parametrize('s', list(range(20)))
+    def test_update(self, s):
+
+        def visit(subtree):
+            if subtree:
+                if subtree.left:
+                    yield from visit(subtree.left)
+                yield subtree
+                if subtree.right:
+                    yield from visit(subtree.right)
+
+        random.seed(s)
+        n = 190
+        intervals = list(
+            itertools.compress(map(lambda x: Interval(x, x + 1, 'right'), range(n)), itertools.cycle([1, 0, 1, 1, 0])))
+        tree = IntervalTree(intervals)
+        intervals = random.sample(intervals, len(intervals))
+
+        for interval in intervals:
+            to_delete = tree._find_overlap(IntervalTreeNode(interval))
+            if to_delete:
+                tree._delete(to_delete)
+                for node in visit(tree.root):
+                    all_instants = node.length + \
+                                   (node.left.time_instants if node.left else 0) + \
+                                   (node.right.time_instants if node.right else 0)
+                    full_interval = merge_interval(node.value,
+                                                   node.left.full_interval if node.left else None,
+                                                   node.right.full_interval if node.right else None)
+
+                    assert node.time_instants == all_instants
+                    assert node.full_interval == full_interval, f"{node.value, node.full_interval}" \
+                                                                f"{node.left.full_interval if node.left else None}" \
+                                                                f"{node.right.full_interval if node.right else None}" \
+                                                                f"INTERVAL DELETED: {interval}"
+
+        for interval in intervals:
+            tree.add(interval)  # reinsert interval
+            for node in visit(tree.root):
+                all_instants = node.length + \
+                               (node.left.time_instants if node.left else 0) + \
+                               (node.right.time_instants if node.right else 0)
+                full_interval = merge_interval(node.value,
+                                               node.left.full_interval if node.left else None,
+                                               node.right.full_interval if node.right else None)
+
+                assert node.time_instants == all_instants
+                assert node.full_interval == full_interval, f"{node.value, node.full_interval}" \
+                                                            f"{node.left.full_interval if node.left else None}" \
+                                                            f"{node.right.full_interval if node.right else None}"
+
+    @pytest.mark.parametrize('s', list(range(20)))
+    def test_delete(self, s):
+        random.seed(s)
+        n = 190
+        intervals = list(
+            itertools.compress(map(lambda x: Interval(x, x + 1, 'right'), range(n)), itertools.cycle([1, 0, 1, 1, 0])))
+        tree = IntervalTree(intervals)
+        intervals = random.sample(intervals, len(intervals))
+        for interval in intervals:
+            node = find(tree.root, interval)
+            tree._delete(node)
+            with pytest.raises(Exception):
+                find(tree.root, interval)

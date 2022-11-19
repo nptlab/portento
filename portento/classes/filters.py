@@ -109,7 +109,6 @@ class NodeFilter(Filter):
 
 
 def filter_by_time(stream_tree: StreamTree, time_filter: Union[NoFilter, TimeFilter]):
-
     if stream_tree.root:
         return iter(SortedList(_filter_node_by_time(stream_tree.root, time_filter)))
     else:
@@ -117,22 +116,18 @@ def filter_by_time(stream_tree: StreamTree, time_filter: Union[NoFilter, TimeFil
 
 
 def _filter_node_by_time(node: Union[StreamTreeNode, IntervalTreeNode], time_filter):
-
     if time_filter(node.full_interval):
         if node.left:
             yield from _filter_node_by_time(node.left, time_filter)
         if time_filter(node.value):
-            for interval in (time_filter[node.value]):
-                if isinstance(node, StreamTreeNode):
-                    yield Link(interval, node.u, node.v)
-                else:
-                    yield interval
+            yield from map(lambda i:
+                           Link(i, node.u, node.v) if isinstance(node, StreamTreeNode) else i,
+                           time_filter[node.value])
         if node.right:
             yield from _filter_node_by_time(node.right, time_filter)
 
 
 def filter_by_nodes(stream_dict: StreamDict, node_filter: Union[NoFilter, NodeFilter]):
-
     yield from merge(*(stream for u, links in stream_dict.edges.items() if node_filter(u)
                        for v, stream in links.items() if node_filter(v)))
 
@@ -141,7 +136,6 @@ def filter_stream(stream: Stream,
                   node_filter: Union[NoFilter, NodeFilter] = NoFilter(),
                   time_filter: Union[NoFilter, TimeFilter] = NoFilter(),
                   first='time'):
-
     if first == 'time':
         yield from filter(lambda l: node_filter(l.u) and node_filter(l.v),
                           filter_by_time(stream.tree_view, time_filter))

@@ -1,77 +1,49 @@
 import pandas as pd
 from typing import Iterable
 from functools import reduce, partial
+from itertools import tee
 import operator
 
 
-def merge_interval(interval_1: pd.Interval, interval_2: pd.Interval):
-    """Merge two pandas Interval objects if they do overlap
-
-    Parameters
-    ----------
-    interval_1 : pandas Interval
-    interval_2 : pandas Interval
-
-    Returns
-    -------
-    merged_interval : pandas Interval
-    """
-
-    if interval_1.left < interval_2.left:
-        left_border = interval_1.left
-        is_closed_left = interval_1.closed_left
-    elif interval_1.left == interval_2.left:
-        left_border = interval_1.left
-        is_closed_left = interval_1.closed_left or interval_2.closed_left
-    else:
-        left_border = interval_2.left
-        is_closed_left = interval_2.closed_left
-
-    if interval_1.right > interval_2.right:
-        right_border = interval_1.right
-        is_closed_right = interval_1.closed_right
-    elif interval_1.right == interval_2.right:
-        right_border = interval_1.right
-        is_closed_right = interval_1.closed_right or interval_2.closed_right
-    else:
-        right_border = interval_2.right
-        is_closed_right = interval_2.closed_right
-
-    if is_closed_left:
-        if is_closed_right:
-            closed = 'both'
+def compute_closure(closed_left, closed_right):
+    closed = 'neither'
+    if closed_left:
+        if closed_right:
+            closed = "both"
         else:
-            closed = 'left'
+            closed = "left"
     else:
-        if is_closed_right:
-            closed = 'right'
-        else:
-            closed = 'neither'
-
-    return pd.Interval(left_border, right_border, closed)
+        if closed_right:
+            closed = "right"
+    return closed
 
 
-def intervaltree_boundaries(interval, precision):
-    """Prepare the interval for intervaltree
+def _left_tuple(interval):
+    return interval.left, 0 if interval.closed_left else 1
 
-    Parameters
-    ----------
-    interval
-    precision
 
-    Returns
-    -------
+def _right_tuple(interval):
+    return interval.right, 1 if interval.closed_right else 0
 
-    """
-    # assume '+' operand defined between interval borders and precision
-    begin = interval.left
-    end = interval.right
-    if interval.open_left:
-        begin += precision
-    if interval.closed_right:
-        end += precision
 
-    return begin, end
+def merge_interval(*intervals):
+    """Merge pandas Interval objects
+
+        Parameters
+        ----------
+        intervals: Iterable[pd.Interval]
+
+        Returns
+        -------
+        merged_interval : pandas Interval
+        """
+    it_min, it_max = tee(filter(lambda x: bool(x), intervals), 2)
+    min_interval = min(it_min, key=lambda x: _left_tuple(x))
+    max_interval = max(it_max, key=lambda x: _right_tuple(x))
+
+    closed = compute_closure(min_interval.closed_left, max_interval.closed_right)
+
+    return pd.Interval(min_interval.left, max_interval.right, closed)
 
 
 def cut_interval(interval: pd.Interval, cutting_interval: pd.Interval) -> pd.Interval:
@@ -103,17 +75,14 @@ def cut_interval(interval: pd.Interval, cutting_interval: pd.Interval) -> pd.Int
     elif cutting_interval.right == interval.right:
         closed_right = min(cutting_interval.closed_right, closed_right)
 
-    closed = "neither"
-    if closed_left:
-        if closed_right:
-            closed = "both"
-        else:
-            closed = "left"
-    else:
-        if closed_right:
-            closed = "right"
+    closed = compute_closure(closed_left, closed_right)
 
     return pd.Interval(new_left, new_right, closed)
+
+
+def contains_interval(container_interval, contained_interval):
+    return _left_tuple(container_interval) <= _left_tuple(contained_interval) and \
+           _right_tuple(container_interval) >= _right_tuple(contained_interval)
 
 
 def _mapping_function(datum, interval_type):

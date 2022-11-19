@@ -128,6 +128,9 @@ class IntervalTreeNode:
             to_show.append(self.right.value)
         return str(to_show)
 
+    def __cmp__(self, other):
+        pass
+
     @property
     def length(self):
         return self.value.length
@@ -385,8 +388,14 @@ class IntervalTree:
         y._update_data_delete()
 
         if parent == node:  # node.right has no left child
+            print(f"parent:{parent}")
+            print("==")
+            print(f"node:{node}")
             parent, is_left = self.__delete_node_has_both_children_successor(node, y)
         else:
+            print(f"parent:{parent}")
+            print("!=")
+            print(f"node:{node}")
             parent, is_left = self.__delete_node_has_both_children_no_successor(node, y, parent)
 
         y.color = node.color
@@ -398,6 +407,13 @@ class IntervalTree:
     def __delete_node_has_both_children_successor(self, node, y):
         print("YES SUCCESSOR")
         # is_left = node.is_left()
+        print(f"NODE:{node}, {node.color if node else None}")
+        print(f"NODE LEFT: {node.left}, {node.left.color if node.left else None}")
+        print(f"NODE RIGHT: {node.right}, {node.right.color if node.right else None}")
+        print_tree(node.right)
+        print(f"Y:{y}")
+        print(f"Y LEFT: {y.left}")
+        print(f"Y RIGHT: {y.right}")
         self._transplant(node, y)
         y.left = node.left
         y.left.parent = y
@@ -420,6 +436,8 @@ class IntervalTree:
         overlap = self._find_overlap(node)
 
         while overlap:
+            print("TREE TO DELETE:")
+            print_tree(overlap)
             self._delete(overlap)
             try:
                 print("Now evaluating assertions")

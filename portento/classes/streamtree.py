@@ -9,8 +9,8 @@ from portento.utils import *
 
 @dataclass
 class StreamTreeNode(IntervalTreeNode):
-    u: Hashable = field(default=None, compare=False)
-    v: Hashable = field(default=None, compare=False)
+    u: Hashable = field(default=None, compare=True)
+    v: Hashable = field(default=None, compare=True)
 
     def __post_init__(self):
         self.full_interval = self.value

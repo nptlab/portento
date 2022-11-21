@@ -69,7 +69,7 @@ def card_E(stream: Stream):
     NOT equivalent to len(E(stream)).
 
     """
-    return sum(stream.link_presence_len(u, v) for u in V(stream) for v in W(stream)[u])
+    return sum(stream.link_presence_len(u, v) for u in E(stream) for v in E(stream)[u])
 
 
 def E_t(stream: Stream, t: pd.Interval):
@@ -164,7 +164,7 @@ def card_W(stream: Stream):
     NOT equivalent to len(W(stream)).
 
     """
-    return sum(stream.node_presence_len(node) for node in stream)
+    return sum(stream.node_presence_len(node) for node in stream.nodes)
 
 
 def coverage(stream: Stream):
@@ -190,7 +190,7 @@ def number_of_links(stream: Stream):
 
 def node_duration(stream: Stream):
     """Duration of the stream where each time instant contributes proportionally to the number of nodes
-    present at this time
+    present at this time.
 
     """
     return card_W(stream) / card_V(stream)
@@ -198,9 +198,15 @@ def node_duration(stream: Stream):
 
 def link_duration(stream: Stream):
     """Duration of the stream where each time instant contributes proportionally to the number of links
-    present at this time
+    present at this time.
 
     """
-    card_v_x_v = (card_V(stream) * (card_V(stream) - 1)) / 2
-    # cardinality of the set of unordered pairs of distinct elements
+    card_v_x_v = _card_set_unordered_pairs_distinct_elements(card_V(stream))
     return card_E(stream) / card_v_x_v
+
+
+def _card_set_unordered_pairs_distinct_elements(card_set):
+    """Cardinality of the set of unordered pairs of distinct elements.
+
+    """
+    return (card_set * (card_set - 1)) / 2

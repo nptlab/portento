@@ -10,9 +10,6 @@ from portento.classes.functions import _card_set_unordered_pairs_distinct_elemen
 
 class TestMetrics:
 
-    def test_metrics(self):
-        pass
-
     @pytest.mark.parametrize('s', list(range(20)))
     def test_equalities(self, s):
         n_links = 200
@@ -53,3 +50,5 @@ class TestMetrics:
         assert round_5(number_of_links(stream) * card_T(stream)) == \
                round_5(link_duration(stream) * _card_set_unordered_pairs_distinct_elements(card_V(stream))) == \
                round_5(card_E(stream))
+
+    # TODO test uniformity

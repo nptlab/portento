@@ -10,8 +10,12 @@ Social Network Analysis and Mining 8.1 (2018): 1-29.
 from collections.abc import Hashable
 
 import pandas as pd
-from more_itertools import flatten
+from operator import truediv
+from functools import partial
+from itertools import chain, combinations
+from more_itertools import flatten, unzip
 
+from portento.utils import IntervalTree
 from portento.classes.stream import Stream
 from portento.classes.filters import filter_by_time, TimeFilter
 
@@ -203,6 +207,52 @@ def link_duration(stream: Stream):
     """
     card_v_x_v = _card_set_unordered_pairs_distinct_elements(card_V(stream))
     return card_E(stream) / card_v_x_v
+
+
+def uniformity_of_nodes(stream: Stream, u: Hashable, v: Hashable):
+    """Uniformity of two nodes in the stream.
+    Denotes the capability of two nodes to be linked together considering their presence.
+
+    """
+    return truediv(*_intersection_and_union(stream, u, v))
+
+
+def uniformity(stream: Stream):
+    """Uniformity of the stream.
+    If the stream has uniformity 1 it means all nodes are present at the same times.
+    """
+    f = partial(_intersection_and_union, stream=stream)
+
+    return truediv(*map(lambda x: sum(x), unzip((f(u, v) for u, v in combinations(V(stream), 2)))))
+
+# TODO compactness
+
+
+def _card_intervals_union(intervals_1, intervals_2):
+    """Compute the cardinality of the union of two iterables of intervals.
+
+    """
+    tree = IntervalTree(chain(intervals_1, intervals_2))
+    return tree.length
+
+
+def _card_intervals_intersect(intervals_1, intervals_2, card_union=None):
+    """Compute the cardinality of the intersection of two iterables of intervals.
+
+    """
+    if not card_union:
+        card_union = _card_intervals_union(intervals_1, intervals_2)
+
+    return sum(map(lambda x: x.length, (intervals_1, intervals_2))) - card_union
+
+
+def _intersection_and_union(stream: Stream, *nodes):
+    u, v = nodes
+    t_u = T_u(stream, u)
+    t_v = T_u(stream, v)
+    card_union = _card_intervals_union(t_u, t_v)
+    card_intersection = card_T_u(stream, u) + card_T_u(stream, v) - card_union
+    return card_intersection, card_union
 
 
 def _card_set_unordered_pairs_distinct_elements(card_set):

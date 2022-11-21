@@ -186,3 +186,21 @@ def number_of_links(stream: Stream):
 
     """
     return card_E(stream) / card_T(stream)
+
+
+def node_duration(stream: Stream):
+    """Duration of the stream where each time instant contributes proportionally to the number of nodes
+    present at this time
+
+    """
+    return card_W(stream) / card_V(stream)
+
+
+def link_duration(stream: Stream):
+    """Duration of the stream where each time instant contributes proportionally to the number of links
+    present at this time
+
+    """
+    card_v_x_v = (card_V(stream) * (card_V(stream) - 1)) / 2
+    # cardinality of the set of unordered pairs of distinct elements
+    return card_E(stream) / card_v_x_v

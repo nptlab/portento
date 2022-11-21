@@ -136,6 +136,24 @@ def filter_stream(stream: Stream,
                   node_filter: Union[NoFilter, NodeFilter] = NoFilter(),
                   time_filter: Union[NoFilter, TimeFilter] = NoFilter(),
                   first='time'):
+    """A compounded slice over nodes and time.
+    Function that returns an iterable over Links that respect both the node and the time filter.
+
+    Parameters
+    -------
+    stream : Stream
+        Stream over which the slicing is made.
+    node_filter : Union[NoFilter, NodeFilter]
+        Filter over nodes.
+    time_filter : Union[NoFilter, TimeFilter]
+        Filter over time.
+    first : str['node', 'time']
+        This parameter sets the first filter to apply.
+
+    Returns
+    -------
+    Iterable[Link] : An iterable over the links that respect all filters.
+    """
     if first == 'time':
         yield from filter(lambda l: node_filter(l.u) and node_filter(l.v),
                           filter_by_time(stream.tree_view, time_filter))

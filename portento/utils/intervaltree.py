@@ -140,7 +140,7 @@ class IntervalTreeNode:
                                             self.right.full_interval if self.right else None)
 
     def _update_full_interval(self):
-        """
+        """Iteratively update the full interval navigating through parents
 
         """
         parent = self.parent

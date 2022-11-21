@@ -1,11 +1,188 @@
 """Functional interface to Stream methods
 
-For metrics the interface shall follow the notation of
+For metrics the interface follows the notation of
 
 Latapy, Matthieu, Tiphaine Viard, and Clémence Magnien.
 "Stream graphs and link streams for the modeling of interactions over time."
 Social Network Analysis and Mining 8.1 (2018): 1-29.
 
 """
+from collections.abc import Hashable
+
+import pandas as pd
+from more_itertools import flatten
+
+from portento.classes.stream import Stream
+from portento.classes.filters import filter_by_time, TimeFilter
+
+
 # TODO implement functional interface for non-modifying methods of Stream
-# TODO aggregate nodes in map-reduce if they hold additional info.
+
+def V(stream: Stream):
+    """The set of nodes
+
+    """
+    return stream.nodes.keys()
+
+
+def card_V(stream: Stream):
+    """Cardinality of the set of nodes.
+
+    """
+    return len(stream.nodes)
+
+
+def V_t(stream: Stream, t: pd.Interval):
+    """Set of nodes that are present in a certain time instant.
+
+    """
+    return set(
+        flatten(
+            list(
+                map(lambda link: [link.u, link.v],
+                    filter_by_time(stream.tree_view, TimeFilter([t]))))))
+
+
+def card_V_t(stream: Stream, t):
+    """Cardinality of the set of nodes that are present in a certain time instant.
+
+    """
+    return len(V_t(stream, t))
+
+
+def node_contribution_of_t(stream: Stream, t: pd.Interval):
+    """Contribution of the time instant referring to nodes in the stream.
+
+    """
+    return card_V_t(stream, t) / card_V(stream)
+
+
+def E(stream: Stream):
+    """The set of temporal links.
+
+    """
+    return stream.edges
+
+
+def card_E(stream: Stream):
+    """Cardinality of the set of temporal links as the sum of the amount of time instants in which a link is present.
+    NOT equivalent to len(E(stream)).
+
+    """
+    return sum(stream.link_presence_len(u, v) for u in V(stream) for v in W(stream)[u])
+
+
+def E_t(stream: Stream, t: pd.Interval):
+    """Set of links that are present in a certain time instant.
+
+    """
+    return set(
+        list(
+            map(lambda link: {link.u, link.v},
+                filter_by_time(stream.tree_view, TimeFilter([t])))))
+
+
+def card_E_t(stream: Stream, t):
+    """Cardinality of the set of links that are present in a certain time instant.
+
+    """
+    return len(E_t(stream, t))
+
+
+def link_contribution_of_t(stream: Stream, t: pd.Interval):
+    """Contribution of the time instant referring to links in the stream.
+
+    """
+    return card_E_t(stream, t) / card_E(stream)
+
+
+def T(stream: Stream):
+    """The set of intervals in which the stream is present (at least a link is present).
+
+    """
+    return stream.stream_presence
+
+
+def card_T(stream: Stream):
+    """The number of time instants in which the stream is present (at least a link is present).
+
+    """
+    return stream.stream_presence_len()
+
+
+def T_u(stream: Stream, u: Hashable):
+    """Node presence as the intervals in which a node is present (is at least in a link).
+
+    """
+    return stream.node_presence(u)
+
+
+def card_T_u(stream: Stream, u: Hashable):
+    """The number of time instants in which a node is present (is at least in an link).
+
+    """
+    return stream.node_presence_len(u)
+
+
+def contribution_of_node(stream: Stream, node: Hashable):
+    """Contribution of the node in the stream.
+
+    """
+    return card_T_u(stream, node) / card_T(stream)
+
+
+def T_u_v(stream: Stream, u: Hashable, v: Hashable):
+    """Node presence as the intervals in which a node is present (is at least in a link).
+
+    """
+    return stream.link_presence(u, v)
+
+
+def card_T_u_v(stream: Stream, u: Hashable, v: Hashable):
+    """The number of time instants in which a node is present (is at least in a link).
+
+    """
+    return stream.link_presence_len(u, v)
+
+
+def contribution_of_link(stream: Stream, u: Hashable, v: Hashable):
+    """Contribution of the link in the stream.
+
+    """
+    return card_T_u_v(stream, u, v) / card_T(stream)
+
+
+def W(stream: Stream):
+    """The set of temporal nodes.
+
+    """
+    return stream.nodes
+
+
+def card_W(stream: Stream):
+    """Cardinality of the set of temporal nodes as the sum of the amount of time instants in which a node is present.
+    NOT equivalent to len(W(stream)).
+
+    """
+    return sum(stream.node_presence_len(node) for node in stream)
+
+
+def coverage(stream: Stream):
+    """The coverage of the stream
+
+    """
+    return card_W(stream) / (card_T(stream) * card_V(stream))
+
+
+def number_of_nodes(stream: Stream):
+    """The summation of the contributions of all nodes.
+
+    """
+    return card_W(stream) / card_T(stream)
+
+
+def number_of_links(stream: Stream):
+    """The summation of the contributions of all links.
+
+    """
+    return card_E(stream) / card_T(stream)

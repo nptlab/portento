@@ -9,7 +9,7 @@ from portento.utils import *
 
 @dataclass
 class StreamTreeNode(IntervalTreeNode):
-    u: Hashable = field(default=None, compare=True)
+    u: Hashable = field(default=None, compare=True)  # TODO ask if nodes must be comparable
     v: Hashable = field(default=None, compare=True)
 
     def __post_init__(self):

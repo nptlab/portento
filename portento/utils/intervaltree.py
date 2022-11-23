@@ -18,6 +18,7 @@ class IntervalTreeNode:
 
     """
     value: Interval
+    instant_duration: Union[int, float] = field(default=1, compare=False)
     parent: Optional['IntervalTreeNode'] = field(default=None, compare=False)
     left: Optional['IntervalTreeNode'] = field(default=None, compare=False)
     right: Optional['IntervalTreeNode'] = field(default=None, compare=False)
@@ -54,7 +55,7 @@ class IntervalTreeNode:
 
     @property
     def length(self):
-        return self.value.length
+        return max(self.value.length, self.instant_duration)
 
     def overlaps(self, other):
         """Check if two nodes have overlapping intervals.
@@ -170,8 +171,9 @@ class IntervalTree:
 
     value_type = Interval
 
-    def __init__(self, data: Optional[Iterable[value_type]] = None):
+    def __init__(self, data: Optional[Iterable[value_type]] = None, instant_duration=1):
         self._root = None
+        self._instant_duration = instant_duration
         if data:
             for d in data:
                 self.add(d)
@@ -209,7 +211,7 @@ class IntervalTree:
 
         """
 
-        datum_node = self.__class__()._create_node(datum)
+        datum_node = self.__class__()._create_node(datum, self._instant_duration)
         datum_node = self._merge_all_overlap(datum_node)
 
         if datum_node:
@@ -559,9 +561,9 @@ class IntervalTree:
         self._rb_recursive_delete_fixup(None, True)
 
     @classmethod
-    def _create_node(cls, data):
+    def _create_node(cls, data, instant_duration):
         # data is assumed to be Interval
-        return IntervalTreeNode(data)
+        return IntervalTreeNode(value=data, instant_duration=instant_duration)
 
     @classmethod
     def _merge(cls, node_1, node_2):

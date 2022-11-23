@@ -14,10 +14,11 @@ class StreamDict:
     edge_inner_container_factory = dict
     data_container_factory = IntervalContainer
 
-    def __init__(self, links: Optional[Iterable[Link]] = list()):
+    def __init__(self, links: Optional[Iterable[Link]] = iter([]), instant_duration=1):
         self._nodes = self.node_container_factory()
         self._edges = self.edge_outer_container_factory()
         self._reverse_edges = self.edge_outer_container_factory()
+        self._instant_duration = instant_duration
 
         for link in links:
             self.add(link)
@@ -112,16 +113,16 @@ class StreamDict:
         _, u, v = link
 
         if u not in self.nodes:
-            self.nodes[u] = self.data_container_factory(u)
+            self.nodes[u] = self.data_container_factory(u, instant_duration=self._instant_duration)
 
         if v not in self.nodes:
-            self.nodes[v] = self.data_container_factory(v)
+            self.nodes[v] = self.data_container_factory(v, instant_duration=self._instant_duration)
 
         if u not in self.edges:
             self.edges[u] = self.edge_inner_container_factory()
 
         if v not in self.edges[u]:
-            self.edges[u][v] = self.data_container_factory(u, v)
+            self.edges[u][v] = self.data_container_factory(u, v, instant_duration=self._instant_duration)
 
         if v not in self._reverse_edges:
             self._reverse_edges[v] = self.edge_inner_container_factory()

@@ -49,7 +49,7 @@ class IntervalContainer:
     """
     intervals_container_factory = IntervalTree
 
-    def __init__(self, *args):
+    def __init__(self, *args, instant_duration=1):
         if (len(args) == 1 or len(args) == 2) and all([isinstance(node, Hashable) for node in args]):
             self._cond = sort_nodes(args)
         elif len(args) == 0:
@@ -57,7 +57,7 @@ class IntervalContainer:
         else:
             raise AttributeError
 
-        self._intervals = self.intervals_container_factory()
+        self._intervals = self.intervals_container_factory(instant_duration=instant_duration)
 
     def __iter__(self):
         if len(self._cond) == 2:

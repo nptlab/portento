@@ -12,10 +12,10 @@ from portento.utils import Link, IntervalTree
 
 class Stream:
 
-    def __init__(self, links: Optional[Iterable[Link]] = list()):
-        self._dict = StreamDict(links)
+    def __init__(self, links: Optional[Iterable[Link]] = iter([]), instant_duration=1):
+        self._dict = StreamDict(links, instant_duration=instant_duration)
         self._tree = StreamTree(links)
-        self._time_instants = IntervalTree(map(lambda l: l.interval, links))
+        self._time_instants = IntervalTree(map(lambda l: l.interval, links), instant_duration=instant_duration)
 
     @property
     def tree_view(self):
@@ -36,10 +36,6 @@ class Stream:
     @property
     def edges(self):
         return self.dict_view.edges
-
-    @property
-    def interval_type(self):
-        return self.dict_view.interval_type
 
     def __iter__(self):
         return iter(self.tree_view)

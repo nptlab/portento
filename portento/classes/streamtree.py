@@ -14,6 +14,7 @@ class StreamTreeNode(IntervalTreeNode):
 
     def __post_init__(self):
         self.full_interval = self.value
+        self.instant_duration = None
         self.time_instants = None
 
     def __iter__(self):
@@ -70,7 +71,7 @@ class StreamTree(IntervalTree):
     value_type = Link
 
     @classmethod
-    def _create_node(cls, data):
+    def _create_node(cls, data, instant_duration):
         # data is assumed to be a link
         if isinstance(data, Interval):
             return StreamTreeNode(data)

@@ -5,17 +5,9 @@ import pandas as pd
 import portento
 from portento.utils import Link
 from typing import Union, List
+from collections import defaultdict
 
 DEFAULT_COL_NAMES = ["interval", "source", "target"]
-
-
-def _prepare_data_from_columns(df: pd.DataFrame, cols: Union[str, List[str]], names: List[str] = None):
-    if isinstance(cols, str):
-        return df[cols]
-    else:
-        names = names if names else cols
-        return list(map(lambda attr_vals: tuple(zip(names, attr_vals)),
-                        zip(*(df[attr] for attr in cols))))
 
 
 def from_pandas_stream(df: pd.DataFrame, interval: str = DEFAULT_COL_NAMES[0],
@@ -52,7 +44,6 @@ def from_pandas_stream(df: pd.DataFrame, interval: str = DEFAULT_COL_NAMES[0],
     return stream
 
 
-# TODO this with tuples
 def to_pandas_stream(stream: portento.Stream, interval: str = DEFAULT_COL_NAMES[0],
                      source: str = DEFAULT_COL_NAMES[1],
                      target: str = DEFAULT_COL_NAMES[2]):
@@ -73,6 +64,31 @@ def to_pandas_stream(stream: portento.Stream, interval: str = DEFAULT_COL_NAMES[
     -------
     df : pandas Dataframe
     """
-    df = pd.DataFrame([(*link,) for link in stream], columns=[interval, source, target])
+    d = defaultdict(lambda: [])
+    for link in stream:
+        time, u, v = {interval: link.interval}, \
+                     _prepare_dict_from_node(link.u, source), \
+                     _prepare_dict_from_node(link.v, target)
+        link_dict = {**time, **u, **v}
+        for k, v in link_dict.items():
+            d[k].append(v)
+
+    df = pd.DataFrame.from_dict(dict(d))
 
     return df
+
+
+def _prepare_dict_from_node(node, col_name: str):
+    if isinstance(node, tuple):
+        return dict(tuple(map(lambda x: (col_name + "_" + x[0], x[1]), node)))
+    return {col_name: node}
+
+
+def _prepare_data_from_columns(df: pd.DataFrame, cols: Union[str, List[str]], names: List[str] = None):
+    if isinstance(cols, str):
+        return df[cols]
+    else:
+        names = names if names else cols
+        return list(map(lambda attr_vals: tuple(zip(names, attr_vals)),
+                        zip(*(df[attr] for attr in cols))))
+

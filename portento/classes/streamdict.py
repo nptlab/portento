@@ -14,18 +14,13 @@ class StreamDict:
     edge_inner_container_factory = dict
     data_container_factory = IntervalContainer
 
-    def __init__(self, links: Optional[Iterable[Link]] = list(), int_typ=type(None)):
+    def __init__(self, links: Optional[Iterable[Link]] = list()):
         self._nodes = self.node_container_factory()
         self._edges = self.edge_outer_container_factory()
         self._reverse_edges = self.edge_outer_container_factory()
-        self._interval_type = int_typ
 
         for link in links:
             self.add(link)
-
-    @property
-    def interval_type(self):
-        return self._interval_type
 
     @property
     def nodes(self):
@@ -110,15 +105,8 @@ class StreamDict:
         """
         if not isinstance(link, Link):
             raise TypeError("Tried to insert a non-link object in a stream.")
-        if isinstance(link.interval.left, self.interval_type):
-            self._add(link)
-        elif isinstance(None, self.interval_type):  # this is the first insertion ever
-            self._interval_type = type(link.interval.left)  # this can only be called once
-            self._add(link)
-        else:
-            raise TypeError(f"Tried to insert a link with interval of boundaries of type "
-                            f"{type(link.interval.left)} but links of the stream have type "
-                            f"{self.interval_type}")
+
+        self._add(link)
 
     def _add(self, link: Link):
         _, u, v = link

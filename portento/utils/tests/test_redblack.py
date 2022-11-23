@@ -1,9 +1,8 @@
-import itertools
-
 import pytest
 from pandas import Interval
 import random
 from math import log2
+import itertools
 
 from portento.utils import IntervalTree, IntervalTreeNode, merge_interval
 

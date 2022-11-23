@@ -32,7 +32,7 @@ class TestFromPandasStream:
 class TestToPandasStream:
 
     def test_output(self, data):
-        stream = portento.Stream(map(lambda x: Link(*x), zip(data["intervals"], data["i"], data["j"])))
-
+        stream = portento.Stream(list(map(lambda x: Link(*x), zip(data["intervals"], data["i"], data["j"]))))
         df = to_pandas_stream(stream, *data.keys())
-        assert df.equals(pd.DataFrame([(*link, ) for link in stream], columns=[col for col in data.keys()]))
+        assert df.equals(pd.DataFrame(list(map(lambda link: (*link,), list(stream))),
+                                      columns=[col for col in data.keys()]))

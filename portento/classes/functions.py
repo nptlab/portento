@@ -47,7 +47,7 @@ def V_t(stream: Stream, t: pd.Interval):
                     filter_by_time(stream.tree_view, TimeFilter([t]))))))
 
 
-def card_V_t(stream: Stream, t):
+def card_V_t(stream: Stream, t: pd.Interval):
     """Cardinality of the set of nodes that are present in a certain time instant.
 
     """
@@ -58,7 +58,7 @@ def node_contribution_of_t(stream: Stream, t: pd.Interval):
     """Contribution of the time instant referring to nodes in the stream.
 
     """
-    return card_V_t(stream, t) / card_V(stream)
+    return truediv(card_V_t(stream, t), card_V(stream))
 
 
 def E(stream: Stream):
@@ -86,7 +86,7 @@ def E_t(stream: Stream, t: pd.Interval):
                 filter_by_time(stream.tree_view, TimeFilter([t])))))
 
 
-def card_E_t(stream: Stream, t):
+def card_E_t(stream: Stream, t: pd.Interval):
     """Cardinality of the set of links that are present in a certain time instant.
 
     """
@@ -97,7 +97,7 @@ def link_contribution_of_t(stream: Stream, t: pd.Interval):
     """Contribution of the time instant referring to links in the stream.
 
     """
-    return card_E_t(stream, t) / card_E(stream)
+    return truediv(card_E_t(stream, t), card_E(stream))
 
 
 def T(stream: Stream):
@@ -132,7 +132,7 @@ def contribution_of_node(stream: Stream, node: Hashable):
     """Contribution of the node in the stream.
 
     """
-    return card_T_u(stream, node) / card_T(stream)
+    return truediv(card_T_u(stream, node), card_T(stream))
 
 
 def T_u_v(stream: Stream, u: Hashable, v: Hashable):
@@ -153,7 +153,7 @@ def contribution_of_link(stream: Stream, u: Hashable, v: Hashable):
     """Contribution of the link in the stream.
 
     """
-    return card_T_u_v(stream, u, v) / card_T(stream)
+    return truediv(card_T_u_v(stream, u, v), card_T(stream))
 
 
 def W(stream: Stream):
@@ -175,21 +175,21 @@ def coverage(stream: Stream):
     """The coverage of the stream
 
     """
-    return card_W(stream) / (card_T(stream) * card_V(stream))
+    return truediv(card_W(stream), (card_T(stream) * card_V(stream)))
 
 
 def number_of_nodes(stream: Stream):
     """The summation of the contributions of all nodes.
 
     """
-    return card_W(stream) / card_T(stream)
+    return truediv(card_W(stream), card_T(stream))
 
 
 def number_of_links(stream: Stream):
     """The summation of the contributions of all links.
 
     """
-    return card_E(stream) / card_T(stream)
+    return truediv(card_E(stream), card_T(stream))
 
 
 def node_duration(stream: Stream):
@@ -197,7 +197,7 @@ def node_duration(stream: Stream):
     present at this time.
 
     """
-    return card_W(stream) / card_V(stream)
+    return truediv(card_W(stream), card_V(stream))
 
 
 def link_duration(stream: Stream):
@@ -206,7 +206,7 @@ def link_duration(stream: Stream):
 
     """
     card_v_x_v = _card_set_unordered_pairs_distinct_elements(card_V(stream))
-    return card_E(stream) / card_v_x_v
+    return truediv(card_E(stream), card_v_x_v)
 
 
 def uniformity_of_nodes(stream: Stream, u: Hashable, v: Hashable):
@@ -223,9 +223,57 @@ def uniformity(stream: Stream):
     """
     f = partial(_intersection_and_union, stream=stream)
 
-    return truediv(*map(lambda x: sum(x), unzip((f(u, v) for u, v in combinations(V(stream), 2)))))
+    return truediv(
+        *map(
+            lambda x: sum(x),
+            unzip((f(u=u, v=v) for u, v in combinations(V(stream), 2)))))
 
-# TODO compactness
+
+def compactness(stream: Stream):
+    """Compute the compactness of the stream.
+    It's like the coverage with T = [min(t), max(t)]
+
+    """
+    t_min_max = stream.stream_presence.root.full_interval.length
+    return truediv(card_W(stream), (t_min_max * card_V(stream)))
+
+
+def density(stream: Stream):
+    """Density of the stream.
+    Indicates the probability that, taking a time and two nodes, the link exists.
+
+    """
+    sum_intersect_t_u_t_v = sum(_card_intervals_intersection(stream, u, v)
+                                for u, v in combinations(V(stream), 2))
+
+    if sum_intersect_t_u_t_v:
+        return truediv(card_E(stream),
+                       sum_intersect_t_u_t_v)
+    return 0
+
+
+def density_of_pair(stream: Stream, u: Hashable, v: Hashable):
+    """Density of a pair of nodes.
+    Denotes the probability that a link between u and v exists when both nodes exist.
+    """
+    return truediv(card_T_u_v(stream, u, v), _card_intervals_intersection(stream, u, v))
+
+
+def density_of_node(stream: Stream, node: Hashable):
+    """Density of a node.
+    The probability that the node is involved in a link when it exists.
+    """
+    return truediv(
+        *map(lambda x: sum(x),
+             unzip((card_T_u_v(stream, u, node), _card_intervals_intersection(stream, u, node)) for u in V(stream) if
+                   u != node)))
+
+
+def density_of_time(stream: Stream, t: pd.Interval):
+    """Density of a time interval.
+    Denotes the probability that a link exists among two nodes present in time t.
+    """
+    return truediv(card_E_t(stream, t), _card_set_unordered_pairs_distinct_elements(card_V_t(stream, t)))
 
 
 def _card_intervals_union(intervals_1, intervals_2):
@@ -236,18 +284,15 @@ def _card_intervals_union(intervals_1, intervals_2):
     return tree.length
 
 
-def _card_intervals_intersect(intervals_1, intervals_2, card_union=None):
-    """Compute the cardinality of the intersection of two iterables of intervals.
+def _card_intervals_intersection(stream: Stream, u: Hashable, v: Hashable):
+    return card_T_u(stream, u) + card_T_u(stream, v) - _card_intervals_union(card_T_u(stream, u), card_T_u(stream, v))
+
+
+def _intersection_and_union(stream: Stream, u: Hashable, v: Hashable):
+    """Compute the cardinality of the intersection and the union of two sets of time instants.
+    The sets of time instants are red black trees of pandas intervals.
 
     """
-    if not card_union:
-        card_union = _card_intervals_union(intervals_1, intervals_2)
-
-    return sum(map(lambda x: x.length, (intervals_1, intervals_2))) - card_union
-
-
-def _intersection_and_union(stream: Stream, *nodes):
-    u, v = nodes
     t_u = T_u(stream, u)
     t_v = T_u(stream, v)
     card_union = _card_intervals_union(t_u, t_v)
@@ -259,4 +304,4 @@ def _card_set_unordered_pairs_distinct_elements(card_set):
     """Cardinality of the set of unordered pairs of distinct elements.
 
     """
-    return (card_set * (card_set - 1)) / 2
+    return truediv((card_set * (card_set - 1)), 2)

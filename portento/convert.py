@@ -52,6 +52,7 @@ def from_pandas_stream(df: pd.DataFrame, interval: str = DEFAULT_COL_NAMES[0],
     return stream
 
 
+# TODO this with tuples
 def to_pandas_stream(stream: portento.Stream, interval: str = DEFAULT_COL_NAMES[0],
                      source: str = DEFAULT_COL_NAMES[1],
                      target: str = DEFAULT_COL_NAMES[2]):

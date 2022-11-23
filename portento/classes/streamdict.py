@@ -6,7 +6,7 @@ from portento.utils import IntervalContainer, Link, sort_nodes
 
 
 class StreamDict:
-    """The data structure for stream graphs that allows node-based slices
+    """The dictionary-like view on the stream.
 
     """
     node_container_factory = dict
@@ -64,7 +64,7 @@ class StreamDict:
         """
         if isinstance(item, tuple):
             if len(item) == 2 and all(map(lambda x: isinstance(x, Hashable), item)):
-                u, v = sort_nodes(item)
+                u, v = self._sort_nodes(item)
                 if u in self.edges:
                     if v in self.edges[u]:
                         return [link for link in self.edges[u][v]]
@@ -92,7 +92,7 @@ class StreamDict:
         return self.nodes[node]
 
     def edge_presence(self, u: Hashable, v: Hashable):
-        u, v = sort_nodes((u, v))
+        u, v = self._sort_nodes((u, v))
         return self.edges[u][v]
 
     def add(self, link: Link):
@@ -133,3 +133,20 @@ class StreamDict:
         self.nodes[u].add(link)
         self.nodes[v].add(link)
         self.edges[u][v].add(link)
+
+    @staticmethod
+    def _sort_nodes(args):
+        return sort_nodes(args)
+
+
+class DiStreamDict(StreamDict):
+    """The dictionary-like view on the ordered stream.
+
+    Differs from the StreamDict for the fact that it doesn't sort the nodes.
+
+    """
+
+    @staticmethod
+    def _sort_nodes(args):
+        return args
+

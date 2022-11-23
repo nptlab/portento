@@ -37,6 +37,27 @@ class Link:
         return iter((self.interval, self.u, self.v))
 
 
+@dataclass(frozen=True)
+class DiLink(Link):
+    """Base dataclass containing all the information of a directed link of the directed stream.
+    This works like the Link, just it doesn't sort nodes.
+
+        Parameters
+        ----------
+        interval : Interval
+        u : node (Hashable)
+        v : node (Hashable)
+
+        """
+
+    def __post_init__(self):
+        if self.u is None or self.v is None:
+            raise ValueError(f"Tried to create a link with a node equal to {None} "
+                             f"in interval {self.interval}")
+        if not isinstance(self.u, Hashable) or not isinstance(self.v, Hashable):
+            raise TypeError("Tried to create a link with non-hashable node.")
+
+
 class IntervalContainer:
     """The container class for data in the stream.
     This class contains one of the below:
@@ -51,7 +72,7 @@ class IntervalContainer:
 
     def __init__(self, *args, instant_duration=1):
         if (len(args) == 1 or len(args) == 2) and all([isinstance(node, Hashable) for node in args]):
-            self._cond = sort_nodes(args)
+            self._cond = self.__class__()._initialize_cond(args)
         elif len(args) == 0:
             self._cond = None
         else:
@@ -113,3 +134,26 @@ class IntervalContainer:
 
     def _add(self, interval):
         self._intervals.add(interval)
+
+    @classmethod
+    def _initialize_cond(cls, args):
+        return sort_nodes(args)
+
+
+class DiIntervalContainer(IntervalContainer):
+    """The container class for data in the directed stream.
+    This class contains one of the below:
+    - All the time intervals in which a node is active (a node has at least an active link)
+    - All the time intervals in which an edge is active (two nodes have an active link)
+    Overlapping time intervals are merged when the function add(link) is called
+
+    This class is used as link_container_factory inside the StreamDict class.
+
+    It differs from the IntervalContainer in the fact that it doesn't sort nodes, as links are directed.
+
+    """
+
+    @classmethod
+    def _initialize_cond(cls, args):
+        return args
+

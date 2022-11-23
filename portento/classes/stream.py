@@ -4,18 +4,23 @@ from collections.abc import Hashable
 from typing import Optional, Iterable, Union
 
 from portento.classes.streamtree import StreamTree
-from portento.classes.streamdict import StreamDict
+from portento.classes.streamdict import StreamDict, DiStreamDict
 from portento.utils import Link, IntervalTree
 
 
-# TODO put all correctness checks here (?)
-
 class Stream:
+    """The stream class.
+
+    """
+    dict_view_container = StreamDict
+    tree_view_container = StreamTree
+    time_instants_container = IntervalTree
 
     def __init__(self, links: Optional[Iterable[Link]] = iter([]), instant_duration=1):
-        self._dict = StreamDict(links, instant_duration=instant_duration)
-        self._tree = StreamTree(links)
-        self._time_instants = IntervalTree(map(lambda l: l.interval, links), instant_duration=instant_duration)
+        self._dict = self.dict_view_container(links, instant_duration=instant_duration)
+        self._tree = self.tree_view_container(links)
+        self._time_instants = self.time_instants_container(map(lambda l: l.interval, links),
+                                                           instant_duration=instant_duration)
 
     @property
     def tree_view(self):
@@ -113,21 +118,6 @@ class Stream:
 
         return self.link_presence(u, v).length
 
-    def nodes_present_in_t(self, instant: Union[int, float, int64, float64, Timestamp, Timedelta]):
-        """Return all nodes present during the specified instant.
-
-        """
-        interval = Interval(instant, instant, 'both')
-        return self.time_based_slice(interval).nodes.keys()
-
-    def links_present_in_t(self, instant: Union[int, float, int64, float64, Timestamp, Timedelta]):
-        """Return all edges present during the specified instant.
-
-        """
-        interval = Interval(instant, instant, 'both')
-        return [(u, v) for (u, edges) in self.time_based_slice(interval).edges.items()
-                for v in edges.keys()]
-
     def add(self, link: Link):
         """Add a link to the stream.
         The link is added both to a StreamDict object and a StreamTree object.
@@ -141,3 +131,12 @@ class Stream:
         self.dict_view.add(link)
         self.tree_view.add(link)
         self.stream_presence.add(link.interval)
+
+
+class DiStream(Stream):
+    """The directed stream class.
+
+    The order of the nodes counts.
+
+    """
+    dict_view_container = DiStreamDict

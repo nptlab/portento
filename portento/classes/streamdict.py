@@ -2,7 +2,7 @@ from heapq import merge
 from collections.abc import Hashable
 from typing import Optional, Iterable
 
-from portento.utils import IntervalContainer, Link, sort_nodes
+from portento.utils import IntervalContainer, DiIntervalContainer, Link, DiLink, sort_nodes
 
 
 class StreamDict:
@@ -104,8 +104,9 @@ class StreamDict:
             The link to insert in the stream.
 
         """
-        if not isinstance(link, Link):
-            raise TypeError("Tried to insert a non-link object in a stream.")
+        if not isinstance(link, Link) or isinstance(link, DiLink):
+            raise TypeError("Tried to insert a non-link object in a stream. "
+                            "(DiLink objects not allowed).")
 
         self._add(link)
 
@@ -145,6 +146,18 @@ class DiStreamDict(StreamDict):
     Differs from the StreamDict for the fact that it doesn't sort the nodes.
 
     """
+
+    data_container_factory = DiIntervalContainer
+
+    def __init__(self, links: Optional[Iterable[DiLink]] = iter([]), instant_duration=1):
+        super().__init__(links, instant_duration)
+
+    def add(self, link: DiLink):
+        if not isinstance(link, DiLink):
+            raise TypeError("Tried to insert a non-directed link object in a directed stream. "
+                            "(Link objects not allowed).")
+
+        self._add(link)
 
     @staticmethod
     def _sort_nodes(args):

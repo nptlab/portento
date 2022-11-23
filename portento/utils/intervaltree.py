@@ -28,7 +28,7 @@ class IntervalTreeNode:
 
     def __post_init__(self):
         self.full_interval = self.value
-        self.time_instants = self.value.length
+        self.time_instants = self.length
 
     def __iter__(self):
         """Iterate over the nodes depth-first visit.

@@ -75,7 +75,7 @@ class StreamTree(IntervalTree):
         # data is assumed to be a link
         if isinstance(data, Interval):
             return StreamTreeNode(data)
-        elif isinstance(data, Link):
+        elif isinstance(data, cls.value_type):
             return StreamTreeNode(value=data.interval, u=data.u, v=data.v)
 
     @classmethod

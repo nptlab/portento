@@ -156,4 +156,3 @@ class DiIntervalContainer(IntervalContainer):
     @classmethod
     def _initialize_cond(cls, args):
         return args
-

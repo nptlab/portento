@@ -63,14 +63,10 @@ print("* Slices can be compounded. The order of slicing (node first or time firs
 print("- NODE FIRST:")
 filtered_stream = list(portento.filter_stream(stream, node_filter=node_filter, time_filter=time_filter, first='node'))
 print('\n'.join([str(link) for link in filtered_stream][:10]))
-print("=====")
-print('\n'.join([str(link) for link in filtered_stream][-10:]))
 
 print("- TIME FIRST:")
 filtered_stream = list(portento.filter_stream(stream, node_filter=node_filter, time_filter=time_filter, first='time'))
 print('\n'.join([str(link) for link in filtered_stream][:10]))
-print("=====")
-print('\n'.join([str(link) for link in filtered_stream][-10:]))
 
 print("* These are all the classes represented in the dataset:")
 classes = sorted(school_df.C_i.unique())

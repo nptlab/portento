@@ -95,14 +95,6 @@ node_79_presence = list(stream.node_presence(79))
 print(node_71_presence[:10])
 print(node_79_presence[:10])
 print(stream[71, 79])
-print("\n* Upon adding, it is automatically checked whether the interval is compatible with other intervals in the "
-      "stream:")
-try:
-    link = portento.Link(pd.Interval(pd.Timestamp(year=2022, month=10, day=2),
-                                     pd.Timestamp(year=2022, month=10, day=11)), 71, 79)
-    stream.add(link)
-except Exception as e:
-    print(e)
 
 print("\n* A node is created as a link with that node is inserted in the stream.")
 try:

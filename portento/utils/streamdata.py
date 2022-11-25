@@ -56,8 +56,15 @@ class DiLink(Link):
 
     """
 
-    def __order_nodes(self):
-        pass
+    def __post_init__(self):
+        if self.u is None or self.v is None:
+            raise ValueError(f"Tried to create a link with a node equal to {None} "
+                             f"in interval {self.interval}")
+        if not isinstance(self.u, Hashable) or not isinstance(self.v, Hashable):
+            raise TypeError("Tried to create a link with non-hashable node.")
+
+        if repr(self.u) == repr(self.v):
+            raise AttributeError(f"Self loops are not allowed. Node with self loop: {self.u}")
 
 
 class IntervalContainer:

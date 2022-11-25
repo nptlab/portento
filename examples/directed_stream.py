@@ -39,13 +39,17 @@ def import_obs_df():
     df = df.dropna()
     df = df.rename(columns={"DateTime": 't'})
     df = df.loc[df["Actor"] != df["Recipient"]]
-    offset = pd.Timestamp(df.iloc[0]['t'])
+    offset = pd.Timestamp(df['t'].min())
+    df['Actor'] = df['Actor'].map(lambda x: x.strip())
+    df['Recipient'] = df['Recipient'].map(lambda x: x.strip())
     df['t'] = df['t'].map(lambda x: int((pd.Timestamp(x) - offset) / pd.Timedelta('1s')))
     df['t'] = list(map(lambda x: pd.Interval(x[0], sum(x), 'both'), df[['t', 'Duration']].itertuples(index=False)))
     return df
 
 
 baboon_df = import_obs_df()
+baboons = pd.unique(baboon_df[["Actor", "Recipient"]].values.ravel('K'))
+print(baboons)
 print(baboon_df[:10])
 
 if not path.exists(STREAM_PICKLE):
@@ -57,17 +61,4 @@ else:
 
 
 print("\n* A directed stream, where the order of nodes is relevant:")
-print('\n'.join([str(link) for link in di_stream][:10]))
-
-# TODO keep this
-"""THIS_FILE = path.join(DATA_DIR, TXT_DIR, OBSERVE_FILE)
-df = pd.read_csv(THIS_FILE, compression='gzip', header=0, sep='\t')
-print(len(df))
-df = df.drop(['Point', 'Behavior', 'Category'], axis=1)
-df = df.dropna()
-df = df.loc[df.Duration > 0]
-df = df.rename(columns={"DateTime": "t"})
-offset = pd.Timestamp(df.iloc[0]['t'])
-df['t'] = df['t'].map(lambda x: int((pd.Timestamp(x) - offset) / pd.Timedelta('1s')))
-df['t'] = df['t'] + df['Duration']
-print(len(df))"""
+print('\n'.join([str(link) for link in di_stream]))

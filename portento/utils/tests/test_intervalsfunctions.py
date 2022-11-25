@@ -2,7 +2,6 @@ import pytest
 import pandas as pd
 
 from portento.utils import merge_interval
-from portento.exception import PortentoMergeException
 
 
 class TestIntervalMerge:

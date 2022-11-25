@@ -33,7 +33,7 @@ def import_malawi_data_as_df():
     malawi = pd.read_csv(THIS_FILE, compression='gzip', header=0, sep=',', index_col=0)
     malawi = malawi.drop('day', axis=1)
     malawi.columns = FINAL_COLUMNS
-    malawi.t = malawi.t.apply(lambda x: pd.Interval(x, x + 1, 'left'))
+    malawi.t = malawi.t.apply(lambda x: pd.Interval(x, x, 'both'))
     return malawi
 
 
@@ -112,22 +112,6 @@ except Exception as e:
 stream.add(portento.Link(pd.Interval(int64(0), int64(10)), 5000, 71))
 print("*** After addition:")
 print(stream[5000])
-
-print("\n* When creating a stream-graph, the type of the interval boundaries is automatically set based on the first "
-      "insertion:")
-new_stream = portento.Stream()
-print(new_stream.interval_type)
-new_stream.add(portento.Link(pd.Interval(0, 1), 0, 1))
-print("*** After addition:")
-print(new_stream.interval_type)
-
-print("\n* A node can be any Python object that is hashable:")
-new_stream.add(portento.Link(pd.Interval(0, 1), lambda x: x, (1, 2, 3)))
-print(new_stream.nodes.keys())
-try:
-    new_stream.add(portento.Link(pd.Interval(0, 1), 0, [1, 2, 3]))
-except Exception as e:
-    print(e)
 
 print("\n* This kind of data structure offers the possibility to define node-based slices:")
 nodes = list(map(lambda x: int64(x), [9, 31, 37, 59, 65]))

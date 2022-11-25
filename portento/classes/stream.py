@@ -1,21 +1,26 @@
-from pandas import Interval, Timestamp, Timedelta
-from numpy import int64, float64
+from itertools import tee
 from collections.abc import Hashable
 from typing import Optional, Iterable, Union
 
-from portento.classes.streamtree import StreamTree
-from portento.classes.streamdict import StreamDict
-from portento.utils import Link, IntervalTree
+from .streamtree import StreamTree
+from .streamdict import StreamDict, DiStreamDict
+from portento.utils import Link, DiLink, IntervalTree
 
-
-# TODO put all correctness checks here (?)
 
 class Stream:
+    """The stream class.
 
-    def __init__(self, links: Optional[Iterable[Link]] = list(), int_typ=type(None)):
-        self._dict = StreamDict(links, int_typ)
-        self._tree = StreamTree(links)
-        self._time_instants = IntervalTree(map(lambda l: l.interval, links))
+    """
+    dict_view_container = StreamDict
+    tree_view_container = StreamTree
+    time_instants_container = IntervalTree
+
+    def __init__(self, links: Optional[Iterable[Union[Link, DiLink]]] = iter([]), instant_duration=1):
+        links_for_dict, links_for_tree, links_for_time = tee(links, 3)
+        self._dict = self.dict_view_container(links_for_dict, instant_duration=instant_duration)
+        self._tree = self.tree_view_container(links_for_tree)
+        self._time_instants = self.time_instants_container(map(lambda l: l.interval, links_for_time),
+                                                           instant_duration=instant_duration)
 
     @property
     def tree_view(self):
@@ -37,10 +42,6 @@ class Stream:
     def edges(self):
         return self.dict_view.edges
 
-    @property
-    def interval_type(self):
-        return self.dict_view.interval_type
-
     def __iter__(self):
         return iter(self.tree_view)
 
@@ -57,8 +58,6 @@ class Stream:
         If intervals have boundaries of the pandas Timestamp type, the number of total seconds is returned
 
         """
-        if isinstance(self.stream_presence.length, Timedelta):
-            return self.stream_presence.length.total_seconds()
 
         return self.stream_presence.length
 
@@ -85,8 +84,6 @@ class Stream:
         If intervals have boundaries of the pandas Timestamp type, the number of total seconds is returned
 
         """
-        if isinstance(self.node_presence(node).length, Timedelta):
-            return self.node_presence(node).length.total_seconds()
 
         return self.node_presence(node).length
 
@@ -112,27 +109,10 @@ class Stream:
         If intervals have boundaries of the pandas Timestamp type, the number of total seconds is returned
 
         """
-        if isinstance(self.link_presence(u, v).length, Timedelta):
-            return self.link_presence(u, v).length.total_seconds()
 
         return self.link_presence(u, v).length
 
-    def nodes_present_in_t(self, instant: Union[int, float, int64, float64, Timestamp, Timedelta]):
-        """Return all nodes present during the specified instant.
-
-        """
-        interval = Interval(instant, instant, 'both')
-        return self.time_based_slice(interval).nodes.keys()
-
-    def links_present_in_t(self, instant: Union[int, float, int64, float64, Timestamp, Timedelta]):
-        """Return all edges present during the specified instant.
-
-        """
-        interval = Interval(instant, instant, 'both')
-        return [(u, v) for (u, edges) in self.time_based_slice(interval).edges.items()
-                for v in edges.keys()]
-
-    def add(self, link: Link):
+    def add(self, link):
         """Add a link to the stream.
         The link is added both to a StreamDict object and a StreamTree object.
 
@@ -145,3 +125,12 @@ class Stream:
         self.dict_view.add(link)
         self.tree_view.add(link)
         self.stream_presence.add(link.interval)
+
+
+class DiStream(Stream):
+    """The directed stream class.
+
+    The order of the nodes counts.
+
+    """
+    dict_view_container = DiStreamDict

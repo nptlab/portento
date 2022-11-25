@@ -9,11 +9,12 @@ from portento.utils import *
 
 @dataclass
 class StreamTreeNode(IntervalTreeNode):
-    u: Hashable = field(default=None, compare=True)
+    u: Hashable = field(default=None, compare=True)  # TODO ask if nodes must be comparable
     v: Hashable = field(default=None, compare=True)
 
     def __post_init__(self):
         self.full_interval = self.value
+        self.instant_duration = None
         self.time_instants = None
 
     def __iter__(self):
@@ -70,11 +71,11 @@ class StreamTree(IntervalTree):
     value_type = Link
 
     @classmethod
-    def _create_node(cls, data):
+    def _create_node(cls, data, instant_duration):
         # data is assumed to be a link
         if isinstance(data, Interval):
             return StreamTreeNode(data)
-        elif isinstance(data, Link):
+        elif isinstance(data, cls.value_type):
             return StreamTreeNode(value=data.interval, u=data.u, v=data.v)
 
     @classmethod

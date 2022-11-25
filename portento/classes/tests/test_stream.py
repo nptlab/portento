@@ -52,22 +52,13 @@ class TestStream:
         assert stream.stream_presence_len() == 6.5
         assert stream_2.stream_presence_len() == 10.0
 
-    # TODO time_instants with Timedelta
-    """def test_graph_presence_timestamp(self):
-        links = [Link(Interval(Timestamp('2017-01-01 00:00:00'), Timestamp('2018-01-01 00:00:00')), 'a', 'b'),
-                 Link(Interval(Timestamp('2018-01-01 00:00:00'), Timestamp('2019-01-01 00:00:00')), 'a', 'b'),
-                 Link(Interval(Timestamp('2019-01-01 00:00:00'), Timestamp('2020-01-01 00:00:00')), 'a', 'b')]
-        s = Stream(links)
-        assert s.stream_presence_len() == Interval(Timestamp('2017-01-01 00:00:00'),
-                                                   Timestamp('2020-01-01 00:00:00')).length.total_seconds()"""
-
     def test_presence(self, stream, stream_2):
-        assert stream.stream_presence_len() == compute_presence(stream.stream_presence, stream.interval_type)
-        assert stream_2.stream_presence_len() == compute_presence(stream_2.stream_presence, stream_2.interval_type)
+        assert stream.stream_presence_len() == compute_presence(stream.stream_presence)
+        assert stream_2.stream_presence_len() == compute_presence(stream_2.stream_presence)
 
         for s in [stream, stream_2]:
             for u in s.nodes:
-                assert s.node_presence_len(u) == compute_presence(s.node_presence(u), s.interval_type)
+                assert s.node_presence_len(u) == compute_presence(s.node_presence(u))
                 if u in s.edges:
                     for v in s.edges[u]:
-                        assert s.link_presence_len(u, v) == compute_presence(s.link_presence(u, v), s.interval_type)
+                        assert s.link_presence_len(u, v) == compute_presence(s.link_presence(u, v))

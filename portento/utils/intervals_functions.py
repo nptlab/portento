@@ -85,14 +85,14 @@ def contains_interval(container_interval, contained_interval):
            _right_tuple(container_interval) >= _right_tuple(contained_interval)
 
 
-def _mapping_function(datum, interval_type):
+def _mapping_function(datum):
     if isinstance(datum, pd.Interval):
         return datum.length
     else:
-        return _mapping_function(datum.interval, interval_type)
+        return _mapping_function(datum.interval)
 
 
-def compute_presence(intervals: Iterable[pd.Interval], interval_type):
+def compute_presence(intervals: Iterable[pd.Interval]):
     """Sum of all lengths of intervals in the iterable
 
     If the type of the boundaries is Timestamp or Timedelta, the result return is the total seconds.
@@ -109,6 +109,6 @@ def compute_presence(intervals: Iterable[pd.Interval], interval_type):
     float
     """
     if intervals:
-        return reduce(operator.add, map(partial(_mapping_function, interval_type=interval_type), intervals))
+        return reduce(operator.add, map(_mapping_function, intervals))
     else:
         return 0

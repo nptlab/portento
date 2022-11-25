@@ -13,7 +13,8 @@ DEFAULT_COL_NAMES = ["interval", "source", "target"]
 
 def from_pandas_stream(df: pd.DataFrame, interval: str = DEFAULT_COL_NAMES[0],
                        source: Union[str, List[str]] = DEFAULT_COL_NAMES[1],
-                       target: Union[str, List[str]] = DEFAULT_COL_NAMES[2]):
+                       target: Union[str, List[str]] = DEFAULT_COL_NAMES[2],
+                       instant_duration: Union[int, float] = 1):
     """Convert a pandas dataframe to a stream.
 
     Parameters
@@ -26,6 +27,8 @@ def from_pandas_stream(df: pd.DataFrame, interval: str = DEFAULT_COL_NAMES[0],
         Name of the column(s) that stores the sources of links
     target : str | List(str)
         Name of the column(s) that stores the targets of links
+    instant_duration : int | float
+        The duration of an instantaneous event
 
     Returns
     -------
@@ -37,12 +40,14 @@ def from_pandas_stream(df: pd.DataFrame, interval: str = DEFAULT_COL_NAMES[0],
                         df=df,
                         interval=interval,
                         source=source,
-                        target=target)
+                        target=target,
+                        instant_duration=instant_duration)
 
 
 def from_pandas_distream(df: pd.DataFrame, interval: str = DEFAULT_COL_NAMES[0],
                          source: Union[str, List[str]] = DEFAULT_COL_NAMES[1],
-                         target: Union[str, List[str]] = DEFAULT_COL_NAMES[2]):
+                         target: Union[str, List[str]] = DEFAULT_COL_NAMES[2],
+                         instant_duration: Union[int, float] = 1):
     """Convert a pandas dataframe to a directed stream.
 
     Parameters
@@ -55,6 +60,8 @@ def from_pandas_distream(df: pd.DataFrame, interval: str = DEFAULT_COL_NAMES[0],
         Name of the column(s) that stores the sources of links
     target : str | List(str)
         Name of the column(s) that stores the targets of links
+    instant_duration : int | float
+        The duration of an instantaneous event
 
     Returns
     -------
@@ -66,7 +73,8 @@ def from_pandas_distream(df: pd.DataFrame, interval: str = DEFAULT_COL_NAMES[0],
                         df=df,
                         interval=interval,
                         source=source,
-                        target=target)
+                        target=target,
+                        instant_duration=instant_duration)
 
 
 def to_pandas_stream(stream: portento.Stream, interval: str = DEFAULT_COL_NAMES[0],
@@ -108,7 +116,8 @@ def _from_pandas(df: pd.DataFrame,
                  link_type: Union[Type[Link], Type[DiLink]],
                  interval: str,
                  source: Union[str, List[str]],
-                 target: Union[str, List[str]]):
+                 target: Union[str, List[str]],
+                 instant_duration: Union[int, float]):
     if not isinstance(df.dtypes[interval], pd.IntervalDtype):
         raise TypeError(f"The {interval} column must be of type: {str(pd.IntervalDtype)} "
                         f"with the same subtype for all rows")
@@ -116,12 +125,11 @@ def _from_pandas(df: pd.DataFrame,
     if any(((stream_type == portento.Stream and link_type == Link),
             (stream_type == portento.DiStream and link_type == DiLink))):
 
-        # TODO look for more itertools
-
         target = _prepare_data_from_columns(df, target, names=source)
         source = _prepare_data_from_columns(df, source)
 
-        stream = stream_type(links=list(map(lambda x: link_type(*x), zip(df[interval], source, target))))
+        stream = stream_type(links=list(map(lambda x: link_type(*x), zip(df[interval], source, target))),
+                             instant_duration=instant_duration)
 
         return stream
 

@@ -64,14 +64,14 @@ class StreamDict:
         """
         if isinstance(item, tuple):
             if len(item) == 2 and all(map(lambda x: isinstance(x, Hashable), item)):
-                u, v = self._sort_nodes(item)
+                u, v = self.__class__()._sort_nodes(item)
+                if u not in self.nodes or v not in self.nodes:
+                    raise ValueError("One of the two nodes is not in the stream")
                 if u in self.edges:
                     if v in self.edges[u]:
                         return [link for link in self.edges[u][v]]
-                    else:
-                        if v in self.nodes:  # both nodes are in the stream but share no link
-                            return list()
-                raise ValueError("One of the given nodes is not in the stream")
+
+                return list()
 
         elif isinstance(item, Hashable):
             if item not in self.nodes:
@@ -92,7 +92,7 @@ class StreamDict:
         return self.nodes[node]
 
     def edge_presence(self, u: Hashable, v: Hashable):
-        u, v = self._sort_nodes((u, v))
+        u, v = self.__class__()._sort_nodes((u, v))
         return self.edges[u][v]
 
     def add(self, link: Link):
@@ -135,8 +135,8 @@ class StreamDict:
         self.nodes[v].add(link)
         self.edges[u][v].add(link)
 
-    @staticmethod
-    def _sort_nodes(args):
+    @classmethod
+    def _sort_nodes(cls, args):
         return sort_nodes(args)
 
 
@@ -159,7 +159,7 @@ class DiStreamDict(StreamDict):
 
         self._add(link)
 
-    @staticmethod
-    def _sort_nodes(args):
+    @classmethod
+    def _sort_nodes(cls, args):
         return args
 

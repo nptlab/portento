@@ -2,7 +2,7 @@ from itertools import tee
 from collections.abc import Hashable
 from typing import Optional, Iterable, Union
 
-from .streamtree import StreamTree
+from .streamtree import StreamTree, DiStreamTree
 from .streamdict import StreamDict, DiStreamDict
 from portento.utils import Link, DiLink, IntervalTree
 
@@ -15,7 +15,7 @@ class Stream:
     tree_view_container = StreamTree
     time_instants_container = IntervalTree
 
-    def __init__(self, links: Optional[Iterable[Union[Link, DiLink]]] = iter([]), instant_duration=1):
+    def __init__(self, links: Optional[Iterable[Link]] = iter([]), instant_duration=1):
         links_for_dict, links_for_tree, links_for_time = tee(links, 3)
         self._dict = self.dict_view_container(links_for_dict, instant_duration=instant_duration)
         self._tree = self.tree_view_container(links_for_tree)
@@ -134,3 +134,4 @@ class DiStream(Stream):
 
     """
     dict_view_container = DiStreamDict
+    tree_view_container = DiStreamTree

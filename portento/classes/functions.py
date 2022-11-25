@@ -19,6 +19,9 @@ from portento.utils import IntervalTree
 from .stream import Stream, DiStream
 from .filters import filter_by_time, TimeFilter
 
+pair_permutations = partial(permutations, r=2)
+pair_combinations = partial(combinations, r=2)
+
 
 # TODO implement functional interface for non-modifying methods of Stream
 
@@ -278,9 +281,9 @@ def density_of_time(stream: Stream, t: pd.Interval):
 
 def _all_possible_links(stream: Stream):
     if isinstance(stream, DiStream):
-        return permutations(V(stream), 2)
+        return pair_permutations(iterable=V(stream))
 
-    return combinations(V(stream), 2)
+    return pair_combinations(iterable=V(stream))
 
 
 def _card_intervals_union(intervals_1, intervals_2):

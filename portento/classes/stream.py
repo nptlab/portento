@@ -1,11 +1,10 @@
-from pandas import Interval, Timestamp, Timedelta
-from numpy import int64, float64
+from itertools import tee
 from collections.abc import Hashable
 from typing import Optional, Iterable, Union
 
-from portento.classes.streamtree import StreamTree
-from portento.classes.streamdict import StreamDict, DiStreamDict
-from portento.utils import Link, IntervalTree
+from .streamtree import StreamTree
+from .streamdict import StreamDict, DiStreamDict
+from portento.utils import Link, DiLink, IntervalTree
 
 
 class Stream:
@@ -16,10 +15,11 @@ class Stream:
     tree_view_container = StreamTree
     time_instants_container = IntervalTree
 
-    def __init__(self, links: Optional[Iterable[Link]] = iter([]), instant_duration=1):
-        self._dict = self.dict_view_container(links, instant_duration=instant_duration)
-        self._tree = self.tree_view_container(links)
-        self._time_instants = self.time_instants_container(map(lambda l: l.interval, links),
+    def __init__(self, links: Optional[Iterable[Union[Link, DiLink]]] = iter([]), instant_duration=1):
+        links_for_dict, links_for_tree, links_for_time = tee(links, 3)
+        self._dict = self.dict_view_container(links_for_dict, instant_duration=instant_duration)
+        self._tree = self.tree_view_container(links_for_tree)
+        self._time_instants = self.time_instants_container(map(lambda l: l.interval, links_for_time),
                                                            instant_duration=instant_duration)
 
     @property
@@ -58,8 +58,6 @@ class Stream:
         If intervals have boundaries of the pandas Timestamp type, the number of total seconds is returned
 
         """
-        if isinstance(self.stream_presence.length, Timedelta):
-            return self.stream_presence.length.total_seconds()
 
         return self.stream_presence.length
 
@@ -86,8 +84,6 @@ class Stream:
         If intervals have boundaries of the pandas Timestamp type, the number of total seconds is returned
 
         """
-        if isinstance(self.node_presence(node).length, Timedelta):
-            return self.node_presence(node).length.total_seconds()
 
         return self.node_presence(node).length
 
@@ -113,12 +109,10 @@ class Stream:
         If intervals have boundaries of the pandas Timestamp type, the number of total seconds is returned
 
         """
-        if isinstance(self.link_presence(u, v).length, Timedelta):
-            return self.link_presence(u, v).length.total_seconds()
 
         return self.link_presence(u, v).length
 
-    def add(self, link: Link):
+    def add(self, link):
         """Add a link to the stream.
         The link is added both to a StreamDict object and a StreamTree object.
 

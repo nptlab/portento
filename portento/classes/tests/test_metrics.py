@@ -1,15 +1,20 @@
 import pytest
 import random
 from pandas import Interval
-from functools import partial
+from itertools import cycle
 
-from portento import Stream, Link
+from portento import Stream, DiStream
+from portento.utils import Link, DiLink
 from portento.classes.functions import *
 from portento.classes.functions import _card_set_unordered_pairs_distinct_elements, \
     _card_intervals_union
 
 
-def generate_random_links(n, t_range, u_range):
+def create_link(link_type, interval, u, v):
+    return link_type(interval=interval, u=u, v=v)
+
+
+def generate_random_links(n, t_range, u_range, link_type=Link):
     for i in range(n):
         random_t = random.choice(t_range)
         random_delta = random.choice(range(1, 6))
@@ -21,20 +26,23 @@ def generate_random_links(n, t_range, u_range):
         while v == u:
             v = random.choice(u_range)
 
-        yield Link(interval=interval, u=u, v=v)
+        yield create_link(link_type=link_type, interval=interval, u=u, v=v)
 
 
 class TestMetrics:
 
-    @pytest.mark.parametrize('s', list(range(10)))
-    def test_equalities(self, s):
+    @pytest.mark.parametrize('s,stream_types', zip(range(20), cycle(zip((Stream, DiStream), (Link, DiLink)))))
+    def test_equalities(self, s, stream_types):
+
+        stream_type, link_type = stream_types
+
         n_links = 200
         t_range = range(50)  # range for time instants
         u_range = range(12)  # range for nodes
         random.seed(s)
         round_5 = partial(round, ndigits=5)
 
-        stream = Stream(list(generate_random_links(n_links, t_range, u_range)))
+        stream = stream_type(list(generate_random_links(n_links, t_range, u_range, link_type)))
 
         assert round_5(sum((contribution_of_node(stream, n) for n in V(stream)))) == round_5(number_of_nodes(stream))
 
@@ -62,15 +70,19 @@ class TestMetrics:
         tree_1, tree_2 = map(lambda x: IntervalTree(x), intervals)
         assert _card_intervals_union(tree_1, tree_2) == card_union
 
-    @pytest.mark.parametrize('s', list(range(10)))
-    def test_uniformity(self, s):
+    @pytest.mark.parametrize('s,stream_types', zip(range(20), cycle(zip((Stream, DiStream), (Link, DiLink)))))
+    def test_uniformity(self, s, stream_types):
+
+        stream_type, link_type = stream_types
+
         n_links = 200
         t_range = range(50)  # range for time instants
         u_range = range(12)  # range for nodes
         random.seed(s)
         round_5 = partial(round, ndigits=5)
 
-        stream = Stream(list(generate_random_links(n_links, t_range, u_range)))
+        stream = stream_type(list(generate_random_links(n_links, t_range, u_range, link_type)))
+
         union_acc = 0
         intersection_acc = 0
         for u in u_range:
@@ -83,4 +95,3 @@ class TestMetrics:
                     intersection_acc += card_intersection
 
         assert round_5(uniformity(stream)) == round_5(intersection_acc / union_acc)
-

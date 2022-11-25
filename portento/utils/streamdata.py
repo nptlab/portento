@@ -42,13 +42,13 @@ class DiLink(Link):
     """Base dataclass containing all the information of a directed link of the directed stream.
     This works like the Link, just it doesn't sort nodes.
 
-        Parameters
-        ----------
-        interval : Interval
-        u : node (Hashable)
-        v : node (Hashable)
+    Parameters
+    ----------
+    interval : Interval
+    u : node (Hashable)
+    v : node (Hashable)
 
-        """
+    """
 
     def __post_init__(self):
         if self.u is None or self.v is None:
@@ -69,6 +69,7 @@ class IntervalContainer:
 
     """
     intervals_container_factory = IntervalTree
+    link_type = Link
 
     def __init__(self, *args, instant_duration=1):
         if (len(args) == 1 or len(args) == 2) and all([isinstance(node, Hashable) for node in args]):
@@ -76,14 +77,14 @@ class IntervalContainer:
         elif len(args) == 0:
             self._cond = None
         else:
-            raise AttributeError
+            raise AttributeError("Pass a number of nodes < 3.")
 
         self._intervals = self.intervals_container_factory(instant_duration=instant_duration)
 
     def __iter__(self):
         if len(self._cond) == 2:
             u, v = self._cond
-            return iter(Link(interval, u, v) for interval in self._intervals)
+            return iter(self.link_type(interval, u, v) for interval in self._intervals)
         else:
             return iter(self._intervals)
 
@@ -152,6 +153,7 @@ class DiIntervalContainer(IntervalContainer):
     It differs from the IntervalContainer in the fact that it doesn't sort nodes, as links are directed.
 
     """
+    link_type = DiLink
 
     @classmethod
     def _initialize_cond(cls, args):

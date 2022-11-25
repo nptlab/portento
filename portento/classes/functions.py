@@ -12,12 +12,15 @@ from collections.abc import Hashable
 import pandas as pd
 from operator import truediv
 from functools import partial
-from itertools import chain, combinations
+from itertools import chain, combinations, permutations
 from more_itertools import flatten, unzip
 
 from portento.utils import IntervalTree
-from portento.classes.stream import Stream
-from portento.classes.filters import filter_by_time, TimeFilter
+from .stream import Stream, DiStream
+from .filters import filter_by_time, TimeFilter
+
+pair_permutations = partial(permutations, r=2)
+pair_combinations = partial(combinations, r=2)
 
 
 # TODO implement functional interface for non-modifying methods of Stream
@@ -226,7 +229,7 @@ def uniformity(stream: Stream):
     return truediv(
         *map(
             lambda x: sum(x),
-            unzip((f(u=u, v=v) for u, v in combinations(V(stream), 2)))))
+            unzip((f(u=u, v=v) for u, v in _all_possible_links(stream)))))
 
 
 def compactness(stream: Stream):
@@ -244,7 +247,7 @@ def density(stream: Stream):
 
     """
     sum_intersect_t_u_t_v = sum(_card_intervals_intersection(stream, u, v)
-                                for u, v in combinations(V(stream), 2))
+                                for u, v in _all_possible_links(stream))
 
     if sum_intersect_t_u_t_v:
         return truediv(card_E(stream),
@@ -274,6 +277,13 @@ def density_of_time(stream: Stream, t: pd.Interval):
     Denotes the probability that a link exists among two nodes present in time t.
     """
     return truediv(card_E_t(stream, t), _card_set_unordered_pairs_distinct_elements(card_V_t(stream, t)))
+
+
+def _all_possible_links(stream: Stream):
+    if isinstance(stream, DiStream):
+        return pair_permutations(iterable=V(stream))
+
+    return pair_combinations(iterable=V(stream))
 
 
 def _card_intervals_union(intervals_1, intervals_2):

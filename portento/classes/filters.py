@@ -5,10 +5,10 @@ from heapq import merge
 from itertools import repeat
 from sortedcontainers.sortedlist import SortedList
 
-from portento.classes.streamdict import StreamDict
-from portento.classes.stream import Stream
-from portento.classes.streamtree import StreamTree, StreamTreeNode
-from portento.utils import IntervalTree, IntervalTreeNode, Link, cut_interval
+from .streamdict import StreamDict
+from .stream import Stream, DiStream
+from .streamtree import StreamTree, StreamTreeNode
+from portento.utils import IntervalTree, IntervalTreeNode, Link, DiLink, cut_interval
 
 
 class Filter:
@@ -108,23 +108,24 @@ class NodeFilter(Filter):
         return self._filter(node)
 
 
-def filter_by_time(stream_tree: StreamTree, time_filter: Union[NoFilter, TimeFilter]):
+def filter_by_time(stream_tree: StreamTree, time_filter: Union[NoFilter, TimeFilter], link_type=Link):
     if stream_tree.root:
-        return iter(SortedList(_filter_node_by_time(stream_tree.root, time_filter)))
+        return iter(SortedList(_filter_node_by_time(stream_tree.root, time_filter, link_type)))
     else:
-        return iter()
+        return iter([])
 
 
-def _filter_node_by_time(node: Union[StreamTreeNode, IntervalTreeNode], time_filter):
+def _filter_node_by_time(node: Union[StreamTreeNode, IntervalTreeNode], time_filter: Union[NoFilter, TimeFilter],
+                         link_type: Union[Link, DiLink]):
     if time_filter(node.full_interval):
         if node.left:
-            yield from _filter_node_by_time(node.left, time_filter)
+            yield from _filter_node_by_time(node.left, time_filter, link_type)
         if time_filter(node.value):
             yield from map(lambda i:
-                           Link(i, node.u, node.v) if isinstance(node, StreamTreeNode) else i,
+                           link_type(i, node.u, node.v) if isinstance(node, StreamTreeNode) else i,
                            time_filter[node.value])
         if node.right:
-            yield from _filter_node_by_time(node.right, time_filter)
+            yield from _filter_node_by_time(node.right, time_filter, link_type)
 
 
 def filter_by_nodes(stream_dict: StreamDict, node_filter: Union[NoFilter, NodeFilter]):
@@ -158,16 +159,49 @@ def filter_stream(stream: Stream,
     -------
     Iterable[Link] : An iterable over the links that respect all filters.
     """
+    return _filter(stream, Link, node_filter, time_filter, first)
+
+
+def filter_di_stream(stream: DiStream,
+                     node_filter: Union[NoFilter, NodeFilter] = NoFilter(),
+                     time_filter: Union[NoFilter, TimeFilter] = NoFilter(),
+                     first='time'):
+    """A compounded slice over nodes and time.
+        Function that returns an iterable over Links that respect both the node and the time filter.
+
+        Parameters
+        -------
+        stream : DiStream
+            DiStream over which the slicing is made.
+        node_filter : Union[NoFilter, NodeFilter]
+            Filter over nodes.
+        time_filter : Union[NoFilter, TimeFilter]
+            Filter over time.
+        first : str['node', 'time']
+            This parameter sets the first filter to apply.
+
+        Returns
+        -------
+        Iterable[DiLink] : An iterable over the links that respect all filters.
+        """
+    return _filter(stream, DiLink, node_filter, time_filter, first)
+
+
+def _filter(stream: Union[Stream, DiStream],
+            link_type: Union[Link, DiLink],
+            node_filter: Union[NoFilter, NodeFilter] = NoFilter(),
+            time_filter: Union[NoFilter, TimeFilter] = NoFilter(),
+            first='time'):
     if first == 'time':
         yield from filter(lambda l: node_filter(l.u) and node_filter(l.v),
-                          filter_by_time(stream.tree_view, time_filter))
+                          filter_by_time(stream.tree_view, time_filter, link_type))
 
     elif first == 'node':
-        yield from merge(*(map(lambda x: Link(*x),
+        yield from merge(*(map(lambda x: link_type(*x),
                                zip(filter_by_time(links.interval_tree, time_filter), repeat(u), repeat(v)))
                            for u, adj in stream.edges.items() if node_filter(u)
                            for v, links in adj.items() if node_filter(v)
                            ))
     else:
-        raise AttributeError("This method must be called with:\n a Stream, a NodeFilter, a TimeFilter and a string"
-                             " with value \'node\' or \'time\'")
+        raise AttributeError("This method must be called with:\n a Stream (or DiStream), a NodeFilter, a TimeFilter "
+                             "and a string with value \'node\' or \'time\'")

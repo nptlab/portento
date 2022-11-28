@@ -1,6 +1,6 @@
 import pandas as pd
 from typing import Iterable
-from functools import reduce, partial
+from functools import reduce
 from itertools import tee
 import operator
 

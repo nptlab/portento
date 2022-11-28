@@ -1,6 +1,8 @@
 from os import path
 import pandas as pd
+from numpy import float64
 import pickle
+from numbers import Number
 
 import portento
 
@@ -61,4 +63,23 @@ else:
 
 
 print("\n* A directed stream, where the order of nodes is relevant:")
-print('\n'.join([str(link) for link in di_stream]))
+print('\n'.join([str(link) for link in di_stream][:10]))
+
+print("\n* A directed stream, where the order of nodes is relevant:")
+print('\n'.join([str(link) for link in di_stream[('MUSE', 'NEKKE')]][:10]))
+print("======")
+print('\n'.join([str(link) for link in di_stream[('NEKKE', 'MUSE')]][:10]))
+
+print("\n* A DiStream can be sliced as a stream:")
+filtered_di_stream = list(portento.filter_di_stream(di_stream,
+                                                    portento.NodeFilter(lambda node: node in ['MUSE', 'NEKKE']),
+                                                    portento.TimeFilter([pd.Interval(2600000, 7796100)])))
+print('\n'.join([str(link) for link in filtered_di_stream][:10]))
+print("=======")
+filtered_di_stream = list(portento.filter_di_stream(di_stream,
+                                                    portento.NodeFilter(lambda node: node in ['MUSE', 'NEKKE']),
+                                                    portento.TimeFilter([pd.Interval(2600000, 7796100)]), first='node'))
+print('\n'.join([str(link) for link in filtered_di_stream][:10]))
+
+print("\n* A DiStream can be exported as pandas DataFrame:")
+print(portento.to_pandas_stream(portento.DiStream(filtered_di_stream)))

@@ -49,17 +49,17 @@ class StreamDict:
     def __getitem__(self, item):
         """Get links in a sorted list.
 
-                Parameters
-                ----------
-                item : node or (node, node)
-                    A single node or a pair of nodes.
-                    If a single node is passed, this method returns all the links of this node.
-                    If a pair of nodes is passed, this method returns all links among these nodes.
+        Parameters
+        ----------
+        item : node or (node, node)
+            A single node or a pair of nodes.
+            If a single node is passed, this method returns all the links of this node.
+            If a pair of nodes is passed, this method returns all links among these nodes.
 
-                Returns
-                -------
-                list_of_links : list(Link)
-                    List of links.
+        Returns
+        -------
+        list_of_links : list(Link)
+            List of links.
 
         """
         if isinstance(item, tuple):

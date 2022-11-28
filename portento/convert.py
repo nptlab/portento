@@ -1,10 +1,9 @@
 """Functions to convert a stream graph to and from other formats.
 """
-from functools import partial
 import pandas as pd
 
 import portento
-from portento.utils import Link, DiLink
+from portento.utils import Link, DiLink, interval_from_string
 from typing import Union, List, Type
 from collections import defaultdict
 
@@ -39,7 +38,7 @@ def from_csv_stream(file: str,
     -------
     stream : Stream
     """
-    return from_pandas_stream(pd.read_csv(file, **kwargs),
+    return from_pandas_stream(_prepare_csv(file, interval, **kwargs),
                               interval,
                               source,
                               target,
@@ -76,7 +75,7 @@ def from_csv_di_stream(file: str,
     stream : DiStream
     """
 
-    return from_pandas_di_stream(pd.read_csv(file, **kwargs),
+    return from_pandas_di_stream(_prepare_csv(file, interval, **kwargs),
                                  interval,
                                  source,
                                  target,
@@ -258,3 +257,9 @@ def _prepare_data_from_columns(df: pd.DataFrame, cols: Union[str, List[str]], na
         names = names if names else cols
         return list(map(lambda attr_vals: tuple(zip(names, attr_vals)),
                         zip(*(df[attr] for attr in cols))))
+
+
+def _prepare_csv(file: str, interval: str, **kwargs):
+    df = pd.read_csv(file, **kwargs)
+    df[interval] = df[interval].apply(interval_from_string)
+    return df

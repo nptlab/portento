@@ -86,7 +86,8 @@ class StreamDict:
 
                 return [link for link in merge(*edge_iter, *edge_rev_iter)]
 
-        raise AttributeError("This method requires as input an Hashable object or a tuple of two Hashable objects")
+        raise AttributeError("This method requires as input an Hashable object or a tuple of two Hashable objects.\n"
+                             f"Instead got {item}")
 
     def node_presence(self, node: Hashable):
         return self.nodes[node]

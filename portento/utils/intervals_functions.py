@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 from typing import Iterable
 from functools import reduce
 from itertools import tee
@@ -24,6 +25,13 @@ def _left_tuple(interval):
 
 def _right_tuple(interval):
     return interval.right, 1 if interval.closed_right else 0
+
+
+def interval_from_string(s: str):
+    left_closed = s.startswith('[')
+    right_closed = s.endswith(']')
+    left, right = map(lambda x: float(x), re.findall(r"\d*\.\d+|\d+", s))
+    return pd.Interval(left, right, compute_closure(left_closed, right_closed))
 
 
 def merge_interval(*intervals):

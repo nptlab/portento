@@ -183,7 +183,7 @@ def filter_di_stream(stream: DiStream,
         Returns
         -------
         Iterable[DiLink] : An iterable over the links that respect all filters.
-        """
+    """
     return _filter(stream, DiLink, node_filter, time_filter, first)
 
 

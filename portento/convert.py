@@ -1,17 +1,121 @@
 """Functions to convert a stream graph to and from other formats.
 """
-from functools import partial
 import pandas as pd
 
 import portento
-from portento.utils import Link, DiLink
+from portento.utils import Link, DiLink, interval_from_string
 from typing import Union, List, Type
 from collections import defaultdict
 
 DEFAULT_COL_NAMES = ["interval", "source", "target"]
 
 
-def from_pandas_stream(df: pd.DataFrame, interval: str = DEFAULT_COL_NAMES[0],
+def from_csv_stream(file: str,
+                    interval: str = DEFAULT_COL_NAMES[0],
+                    source: Union[str, List[str]] = DEFAULT_COL_NAMES[1],
+                    target: Union[str, List[str]] = DEFAULT_COL_NAMES[2],
+                    instant_duration: Union[int, float] = 1,
+                    **kwargs):
+    """Convert a csv file to a stream.
+
+    Parameters
+    ----------
+    file : str
+        csv file storing the stream
+    interval : str
+        Name of the column that stores the intervals of links
+    source : str | List(str)
+        Name of the column(s) that stores the sources of links
+    target : str | List(str)
+        Name of the column(s) that stores the targets of links
+    instant_duration : int | float
+        The duration of an instantaneous event
+
+    **kwargs
+        arguments for calling pandas.read_csv
+
+    Returns
+    -------
+    stream : Stream
+    """
+    return from_pandas_stream(_prepare_csv(file, interval, **kwargs),
+                              interval,
+                              source,
+                              target,
+                              instant_duration)
+
+
+def from_csv_di_stream(file: str,
+                       interval: str = DEFAULT_COL_NAMES[0],
+                       source: Union[str, List[str]] = DEFAULT_COL_NAMES[1],
+                       target: Union[str, List[str]] = DEFAULT_COL_NAMES[2],
+                       instant_duration: Union[int, float] = 1,
+                       **kwargs):
+    """Convert a csv file to a directed stream.
+
+    Parameters
+    ----------
+    file : str
+        csv file storing the directed stream
+    interval : str
+        Name of the column that stores the intervals of links
+    source : str | List(str)
+        Name of the column(s) that stores the sources of links
+    target : str | List(str)
+        Name of the column(s) that stores the targets of links
+    instant_duration : int | float
+        The duration of an instantaneous event
+
+
+    **kwargs
+    arguments for calling pandas.read_csv
+
+    Returns
+    -------
+    stream : DiStream
+    """
+
+    return from_pandas_di_stream(_prepare_csv(file, interval, **kwargs),
+                                 interval,
+                                 source,
+                                 target,
+                                 instant_duration)
+
+
+def to_csv_stream(file: str,
+                  stream: Union[portento.Stream, portento.DiStream],
+                  interval: Union[str, List[str]] = DEFAULT_COL_NAMES[0],
+                  source: Union[str, List[str]] = DEFAULT_COL_NAMES[1],
+                  target: Union[str, List[str]] = DEFAULT_COL_NAMES[2],
+                  **kwargs):
+    """Convert a stream to a csv.
+
+    Parameters
+    ----------
+    file: str
+        The output file (will be a csv)
+    stream : Stream
+        A portento Stream
+    interval : str
+        Name of the column that stores the intervals of links
+    source : str
+        Name of the column that stores the sources of links
+    target : str
+        Name of the column that stores the targets of links
+
+
+    **kwargs
+            arguments for calling pandas.DataFrame.to_csv
+
+    Returns
+    -------
+    df : pandas Dataframe
+    """
+    to_pandas_stream(stream, interval, source, target).to_csv(file, **kwargs)
+
+
+def from_pandas_stream(df: pd.DataFrame,
+                       interval: str = DEFAULT_COL_NAMES[0],
                        source: Union[str, List[str]] = DEFAULT_COL_NAMES[1],
                        target: Union[str, List[str]] = DEFAULT_COL_NAMES[2],
                        instant_duration: Union[int, float] = 1):
@@ -44,10 +148,11 @@ def from_pandas_stream(df: pd.DataFrame, interval: str = DEFAULT_COL_NAMES[0],
                         instant_duration=instant_duration)
 
 
-def from_pandas_distream(df: pd.DataFrame, interval: str = DEFAULT_COL_NAMES[0],
-                         source: Union[str, List[str]] = DEFAULT_COL_NAMES[1],
-                         target: Union[str, List[str]] = DEFAULT_COL_NAMES[2],
-                         instant_duration: Union[int, float] = 1):
+def from_pandas_di_stream(df: pd.DataFrame,
+                          interval: str = DEFAULT_COL_NAMES[0],
+                          source: Union[str, List[str]] = DEFAULT_COL_NAMES[1],
+                          target: Union[str, List[str]] = DEFAULT_COL_NAMES[2],
+                          instant_duration: Union[int, float] = 1):
     """Convert a pandas dataframe to a directed stream.
 
     Parameters
@@ -77,7 +182,8 @@ def from_pandas_distream(df: pd.DataFrame, interval: str = DEFAULT_COL_NAMES[0],
                         instant_duration=instant_duration)
 
 
-def to_pandas_stream(stream: portento.Stream, interval: str = DEFAULT_COL_NAMES[0],
+def to_pandas_stream(stream: Union[portento.Stream, portento.DiStream],
+                     interval: str = DEFAULT_COL_NAMES[0],
                      source: str = DEFAULT_COL_NAMES[1],
                      target: str = DEFAULT_COL_NAMES[2]):
     """Convert a stream to a pandas dataframe.
@@ -151,3 +257,9 @@ def _prepare_data_from_columns(df: pd.DataFrame, cols: Union[str, List[str]], na
         names = names if names else cols
         return list(map(lambda attr_vals: tuple(zip(names, attr_vals)),
                         zip(*(df[attr] for attr in cols))))
+
+
+def _prepare_csv(file: str, interval: str, **kwargs):
+    df = pd.read_csv(file, **kwargs)
+    df[interval] = df[interval].apply(interval_from_string)
+    return df

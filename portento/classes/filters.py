@@ -133,10 +133,6 @@ def filter_by_nodes(stream_dict: StreamDict, node_filter: Union[NoFilter, NodeFi
                        for v, stream in links.items() if node_filter(v)))
 
 
-def filter_by_link(stream_dict: StreamDict):
-    pass
-
-
 def filter_stream(stream: Stream,
                   node_filter: Union[NoFilter, NodeFilter] = NoFilter(),
                   time_filter: Union[NoFilter, TimeFilter] = NoFilter(),

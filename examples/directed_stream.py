@@ -19,21 +19,6 @@ OBSERVE_STREAM_PICKLE = 'obs_baboons_stream'
 THIS_FILE = path.join(DATA_DIR, TXT_DIR, OBSERVE_FILE)
 STREAM_PICKLE = path.join(DATA_DIR, PICKLE_DIR, OBSERVE_STREAM_PICKLE)
 
-"""def import_rfid_df(delta=20):
-    df = pd.read_csv(THIS_FILE, compression='gzip', header=0, sep='\t')
-    df = df.drop('DateTime', axis=1)
-    delta = 20
-    offset = df.iloc[0]['t']
-    df['t'] = df['t'].map(lambda x: pd.Interval(x - offset, x - offset + delta, 'both'))
-    return df
-
-
-baboon_df = import_obs_df()
-baboons = sorted(pd.unique(baboon_df[['i', 'j']].values.ravel('K')))
-print("* The name of the baboons present:")
-print(baboons)
-"""
-
 
 def import_obs_df():
     df = pd.read_csv(THIS_FILE, compression='gzip', header=0, sep='\t')

@@ -1,7 +1,7 @@
 import pytest
 import random
 from pandas import Interval
-from itertools import cycle
+from itertools import cycle, repeat
 
 from portento import Stream, DiStream
 from portento.utils import Link, DiLink
@@ -95,3 +95,15 @@ class TestMetrics:
                     intersection_acc += card_intersection
 
         assert round_5(uniformity(stream)) == round_5(intersection_acc / union_acc)
+
+    @pytest.mark.parametrize('s', list(range(20)))
+    def test_degree(self, s):
+
+        n_links = 400
+        t_range = range(200)  # range for time instants
+        u_range = range(50)  # range for nodes
+        random.seed(s)
+        round_5 = partial(round, ndigits=5)
+
+        stream = Stream(list(generate_random_links(n_links, t_range, u_range, Link)))
+        assert round_5(2 * number_of_links(stream)) == round_5(sum((degree(stream, u) for u in stream.nodes)))

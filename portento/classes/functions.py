@@ -279,6 +279,23 @@ def density_of_time(stream: Stream, t: pd.Interval):
     return truediv(card_E_t(stream, t), _card_set_unordered_pairs_distinct_elements(card_V_t(stream, t)))
 
 
+def in_degree(stream: Stream, u: Hashable):
+    return sum((contribution_of_link(stream, u, v) for v in stream.dict_view._reverse_edges[u])) \
+        if u in stream.dict_view._reverse_edges else 0
+
+
+def out_degree(stream: Stream, u: Hashable):
+    return sum((contribution_of_link(stream, u, v) for v in stream.edges[u])) \
+        if u in stream.edges else 0
+
+
+def degree(stream: Stream, u: Hashable):
+    """Degree of a node.
+
+    """
+    return in_degree(stream, u) + out_degree(stream, u)
+
+
 def _all_possible_links(stream: Stream):
     if isinstance(stream, DiStream):
         return pair_permutations(iterable=V(stream))

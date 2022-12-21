@@ -85,7 +85,7 @@ def E_t(stream: Stream, t: pd.Interval):
     """
     return set(
         list(
-            map(lambda link: {link.u, link.v},
+            map(lambda link: (link.u, link.v),
                 filter_by_time(stream.tree_view, TimeFilter([t])))))
 
 
@@ -277,6 +277,30 @@ def density_of_time(stream: Stream, t: pd.Interval):
     Denotes the probability that a link exists among two nodes present in time t.
     """
     return truediv(card_E_t(stream, t), _card_set_unordered_pairs_distinct_elements(card_V_t(stream, t)))
+
+
+def in_degree(stream: Stream, u: Hashable):
+    return sum((contribution_of_link(stream, u, v) for v in stream.dict_view._reverse_edges[u])) \
+        if u in stream.dict_view._reverse_edges else 0
+
+
+def out_degree(stream: Stream, u: Hashable):
+    return sum((contribution_of_link(stream, u, v) for v in stream.edges[u])) \
+        if u in stream.edges else 0
+
+
+def degree(stream: Stream, u: Hashable):
+    """Degree of a node.
+
+    """
+    return in_degree(stream, u) + out_degree(stream, u)
+
+
+def average_degree(stream: Stream):
+    """Average degree of the stream.
+
+    """
+    return sum(degree(stream, u) * card_T_u(stream, u) for u in stream.nodes) / card_W(stream)
 
 
 def _all_possible_links(stream: Stream):

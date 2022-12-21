@@ -1,9 +1,3 @@
-from typing import Optional
-
-from pandas import Interval
-from dataclasses import dataclass, field
-from collections.abc import Hashable
-
 from portento.utils import *
 
 
@@ -64,18 +58,28 @@ class StreamTreeNode(IntervalTreeNode):
         return Link(cut_interval(self.value, other.value), u=self.u, v=self.v)
 
 
+@dataclass
+class DiStreamTreeNode(StreamTreeNode):
+
+    def __iter__(self):
+        if self.left:
+            yield from iter(self.left)
+        yield DiLink(self.value, self.u, self.v)
+        if self.right:
+            yield from iter(self.right)
+
+
 class StreamTree(IntervalTree):
     """The data structure for stream graphs that allows time-based slices
 
     """
-    value_type = Link
 
     @classmethod
     def _create_node(cls, data, instant_duration):
         # data is assumed to be a link
         if isinstance(data, Interval):
             return StreamTreeNode(data)
-        elif isinstance(data, cls.value_type):
+        elif isinstance(data, Link):
             return StreamTreeNode(value=data.interval, u=data.u, v=data.v)
 
     @classmethod
@@ -84,3 +88,26 @@ class StreamTree(IntervalTree):
             return StreamTreeNode(merge_interval(node_1.value, node_2.value), u=node_1.u, v=node_1.v)
         else:
             raise AttributeError("Two nodes must have same u and v")
+
+
+class DiStreamTree(StreamTree):
+    """The data structure for directed stream graphs that allows time-based slices
+
+    """
+
+    @classmethod
+    def _create_node(cls, data, instant_duration):
+        # data is assumed to be a link
+        if isinstance(data, Interval):
+            return DiStreamTreeNode(data)
+        elif isinstance(data, DiLink):
+            return DiStreamTreeNode(value=data.interval, u=data.u, v=data.v)
+
+    @classmethod
+    def _merge(cls, node_1, node_2):
+        if node_1.u == node_1.u and node_1.v == node_2.v:
+            return DiStreamTreeNode(merge_interval(node_1.value, node_2.value), u=node_1.u, v=node_1.v)
+        else:
+            raise AttributeError("Two nodes must have same u and v")
+
+

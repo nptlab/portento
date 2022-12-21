@@ -16,8 +16,7 @@ class TestDiStreamDict:
 
         assert di_stream_dict[(10, 5)] == [DiLink(Interval(0, 2), 10, 5)]
 
-        with pytest.raises(ValueError):
-            di_stream_dict[(5, 10)]
+        assert di_stream_dict[(5, 10)] == list()
 
         with pytest.raises(TypeError):
             di_stream_dict.add(Link(Interval(0, 1), 5, 10))

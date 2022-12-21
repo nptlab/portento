@@ -85,7 +85,7 @@ def E_t(stream: Stream, t: pd.Interval):
     """
     return set(
         list(
-            map(lambda link: {link.u, link.v},
+            map(lambda link: (link.u, link.v),
                 filter_by_time(stream.tree_view, TimeFilter([t])))))
 
 

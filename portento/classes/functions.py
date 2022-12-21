@@ -296,6 +296,13 @@ def degree(stream: Stream, u: Hashable):
     return in_degree(stream, u) + out_degree(stream, u)
 
 
+def average_degree(stream: Stream):
+    """Average degree of the stream.
+
+    """
+    return sum(degree(stream, u) * card_T_u(stream, u) for u in stream.nodes) / card_W(stream)
+
+
 def _all_possible_links(stream: Stream):
     if isinstance(stream, DiStream):
         return pair_permutations(iterable=V(stream))

@@ -58,8 +58,8 @@ class StreamDict:
 
         Returns
         -------
-        list_of_links : list(Link)
-            List of links.
+        iter_of_links : Iterable(Link)
+            Iterable of links.
 
         """
         if isinstance(item, tuple):
@@ -69,9 +69,9 @@ class StreamDict:
                     raise ValueError("One of the two nodes is not in the stream")
                 if u in self.edges:
                     if v in self.edges[u]:
-                        return [link for link in self.edges[u][v]]
+                        return (link for link in self.edges[u][v])
 
-                return list()
+                return iter(list())
 
         elif isinstance(item, Hashable):
             if item not in self.nodes:
@@ -84,7 +84,7 @@ class StreamDict:
                 if item in self._reverse_edges:
                     edge_rev_iter = iter(stream for stream in self._reverse_edges[item].values())
 
-                return [link for link in merge(*edge_iter, *edge_rev_iter)]
+                return (link for link in merge(*edge_iter, *edge_rev_iter))
 
         raise AttributeError("This method requires as input an Hashable object or a tuple of two Hashable objects.\n"
                              f"Instead got {item}")

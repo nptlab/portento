@@ -125,7 +125,7 @@ def T_u(stream: Stream, u: Hashable):
 
 
 def card_T_u(stream: Stream, u: Hashable):
-    """The number of time instants in which a node is present (is at least in an link).
+    """The number of time instants in which a node is present (is at least in a link).
 
     """
     return stream.node_presence_len(u)

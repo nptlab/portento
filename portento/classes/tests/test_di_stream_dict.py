@@ -14,9 +14,9 @@ class TestDiStreamDict:
 
         di_stream_dict = DiStreamDict(di_links)
 
-        assert di_stream_dict[(10, 5)] == [DiLink(Interval(0, 2), 10, 5)]
+        assert list(di_stream_dict[(10, 5)]) == [DiLink(Interval(0, 2), 10, 5)]
 
-        assert di_stream_dict[(5, 10)] == list()
+        assert list(di_stream_dict[(5, 10)]) == list()
 
         with pytest.raises(TypeError):
             di_stream_dict.add(Link(Interval(0, 1), 5, 10))

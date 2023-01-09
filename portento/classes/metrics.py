@@ -1,4 +1,4 @@
-"""Functional interface to Stream methods
+"""Stream Metrics
 
 For metrics the interface follows the notation of
 
@@ -250,8 +250,7 @@ def density(stream: Stream):
                                 for u, v in _all_possible_links(stream))
 
     if sum_intersect_t_u_t_v:
-        return truediv(card_E(stream),
-                       sum_intersect_t_u_t_v)
+        return truediv(card_E(stream), sum_intersect_t_u_t_v)
     return 0
 
 
@@ -300,7 +299,17 @@ def average_degree(stream: Stream):
     """Average degree of the stream.
 
     """
-    return sum(degree(stream, u) * card_T_u(stream, u) for u in stream.nodes) / card_W(stream)
+    return sum(degree(stream, u) * card_T_u(stream, u) for u in V(stream)) / card_W(stream)
+
+
+def average_node_degree(stream: Stream):
+    """Average node degree of the stream.
+
+    The contribution of each node to the average node degree of S is weighted by its presence duration.
+
+    """
+
+    return sum((contribution_of_node(stream, u) * degree(stream, u) for u in V(stream))) / number_of_nodes(stream)
 
 
 def _all_possible_links(stream: Stream):

@@ -5,8 +5,8 @@ from itertools import cycle, repeat
 
 from portento import Stream, DiStream
 from portento.utils import Link, DiLink
-from portento.classes.functions import *
-from portento.classes.functions import _card_set_unordered_pairs_distinct_elements, \
+from portento.classes.metrics import *
+from portento.classes.metrics import _card_set_unordered_pairs_distinct_elements, \
     _card_intervals_union
 
 
@@ -105,3 +105,11 @@ class TestMetrics:
         assert round_5(average_degree(stream)) == \
                round_5(sum(contribution_of_node(stream, u) * degree(stream, u) for u in stream.nodes)
                        / number_of_nodes(stream))
+
+    @pytest.mark.parametrize('s', list(range(20)))
+    def test_avg_node_degree(self, s):
+
+        stream = generate_stream(Stream, Link, s)
+        card_w_stream = card_W(stream)
+        assert round_5(average_node_degree(stream)) == \
+               round_5(sum((card_T_u(stream, u) * degree(stream, u) / card_w_stream for u in V(stream))))

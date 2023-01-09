@@ -312,6 +312,15 @@ def average_node_degree(stream: Stream):
     return sum((contribution_of_node(stream, u) * degree(stream, u) for u in V(stream))) / number_of_nodes(stream)
 
 
+def instantaneous_degree(stream: Stream, u: Hashable, t: pd.Interval):
+    """The instantaneous degree of a node.
+
+
+
+    """
+    return max(card_V_t(stream.neighborhood(u), t) - 1, 0)
+
+
 def _all_possible_links(stream: Stream):
     if isinstance(stream, DiStream):
         return pair_permutations(iterable=V(stream))

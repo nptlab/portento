@@ -1,6 +1,7 @@
 import pytest
 from pandas import Interval
 from itertools import cycle
+from random import choices
 from .random_stream import generate_stream
 from portento.utils import Link, DiLink
 from portento.classes.metrics import *
@@ -87,3 +88,12 @@ class TestMetrics:
         card_w_stream = card_W(stream)
         assert round_5(average_node_degree(stream)) == \
                round_5(sum((card_T_u(stream, u) * degree(stream, u) / card_w_stream for u in V(stream))))
+
+    @pytest.mark.parametrize('s', list(range(20)))
+    def test_instantaneous_degree(self, s):
+
+        stream = generate_stream(Stream, Link, s)
+        for u in V(stream):
+            neighborhood = list(stream.neighborhood(u))
+            for t in map(lambda i: Interval(i.interval.left, i.interval.left, 'both'), choices(neighborhood, k=5)):
+                assert instantaneous_degree(stream, u, t) == 0

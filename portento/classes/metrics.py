@@ -125,7 +125,7 @@ def T_u(stream: Stream, u: Hashable):
 
 
 def card_T_u(stream: Stream, u: Hashable):
-    """The number of time instants in which a node is present (is at least in an link).
+    """The number of time instants in which a node is present (is at least in a link).
 
     """
     return stream.node_presence_len(u)
@@ -310,6 +310,15 @@ def average_node_degree(stream: Stream):
     """
 
     return sum((contribution_of_node(stream, u) * degree(stream, u) for u in V(stream))) / number_of_nodes(stream)
+
+
+def instantaneous_degree(stream: Stream, u: Hashable, t: pd.Interval):
+    """The instantaneous degree of a node.
+
+
+
+    """
+    return max(card_V_t(stream.neighborhood(u), t) - 1, 0)  # -1 because there's the node u
 
 
 def _all_possible_links(stream: Stream):

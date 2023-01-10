@@ -112,6 +112,21 @@ class Stream:
 
         return self.link_presence(u, v).length
 
+    def neighborhood(self, u):
+        """Return the stream with all the links in the neighborhood of node u
+
+        Parameters
+        -------
+        u: Node
+
+        Returns
+        -------
+        stream : Stream
+            Stream object of links in which u appears
+
+        """
+        return Stream(self[u])
+
     def add(self, link):
         """Add a link to the stream.
         The link is added both to a StreamDict object and a StreamTree object.

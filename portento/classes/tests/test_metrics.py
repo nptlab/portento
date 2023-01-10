@@ -95,6 +95,8 @@ class TestMetrics:
         for u in V(stream):
             neighborhood = list(stream.neighborhood(u))
             for t in map(lambda i: Interval(i.interval.left, i.interval.left, 'both'), choices(neighborhood, k=5)):
-                assert instantaneous_degree(stream, u, t) == len(
+                assert instantaneous_degree(stream, u, t) == max(len(
                     set(flatten(((u, v)
-                                 for _, u, v in filter(lambda x: contains_interval(x.interval, t), neighborhood))))) - 1
+                                 for _, u, v in
+                                 filter(lambda x: contains_interval(x.interval, t), neighborhood))))) - 1,
+                                                                 0)

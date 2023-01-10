@@ -1,5 +1,6 @@
 from heapq import merge
 from collections.abc import Hashable
+from functools import singledispatchmethod
 from typing import Optional, Iterable
 
 from portento.utils import IntervalContainer, DiIntervalContainer, Link, DiLink, sort_nodes
@@ -46,6 +47,7 @@ class StreamDict:
     def __contains__(self, item):
         return item in self.nodes
 
+    @singledispatchmethod
     def __getitem__(self, item):
         """Get links in a sorted list.
 
@@ -62,32 +64,39 @@ class StreamDict:
             Iterable of links.
 
         """
-        if isinstance(item, tuple):
-            if len(item) == 2 and all(map(lambda x: isinstance(x, Hashable), item)):
-                u, v = self.__class__()._sort_nodes(item)
-                if u not in self.nodes or v not in self.nodes:
-                    raise ValueError("One of the two nodes is not in the stream")
-                if u in self.edges:
-                    if v in self.edges[u]:
-                        return (link for link in self.edges[u][v])
-
-                return iter(list())
-
-        elif isinstance(item, Hashable):
-            if item not in self.nodes:
-                raise ValueError("The given node is not in the stream")
-            else:
-                edge_iter = iter([])
-                edge_rev_iter = iter([])
-                if item in self.edges:
-                    edge_iter = iter(stream for stream in self.edges[item].values())
-                if item in self._reverse_edges:
-                    edge_rev_iter = iter(stream for stream in self._reverse_edges[item].values())
-
-                return (link for link in merge(*edge_iter, *edge_rev_iter))
 
         raise AttributeError("This method requires as input an Hashable object or a tuple of two Hashable objects.\n"
                              f"Instead got {item}")
+
+    @__getitem__.register
+    def _(self, item: Hashable):
+        if item not in self.nodes:
+            raise ValueError("The given node is not in the stream")
+
+        edge_iter = iter([])
+        edge_rev_iter = iter([])
+        if item in self.edges:
+            edge_iter = iter(stream for stream in self.edges[item].values())
+        if item in self._reverse_edges:
+            edge_rev_iter = iter(stream for stream in self._reverse_edges[item].values())
+
+        return (link for link in merge(*edge_iter, *edge_rev_iter))
+
+    @__getitem__.register
+    def _(self, item: tuple):
+        if len(item) == 2 and all(map(lambda x: isinstance(x, Hashable), item)):
+            u, v = self.__class__()._sort_nodes(item)
+            if u not in self.nodes or v not in self.nodes:
+                raise ValueError("One of the two nodes is not in the stream")
+            if u in self.edges:
+                if v in self.edges[u]:
+                    return (link for link in self.edges[u][v])
+
+            return iter(list())
+
+        raise AttributeError("Tuple must have two nodes."
+                             f"Instead got {len(item)} nodes.")
+
 
     def node_presence(self, node: Hashable):
         return self.nodes[node]
@@ -163,4 +172,3 @@ class DiStreamDict(StreamDict):
     @classmethod
     def _sort_nodes(cls, args):
         return args
-

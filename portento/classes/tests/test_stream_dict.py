@@ -44,12 +44,12 @@ class TestStreamDict:
     def test_getitem(self, links, links_2):
         stream = StreamDict(links)
         stream_2 = StreamDict(links_2)
-        assert stream_2['a'] == sorted([Link(Interval(0.0, 4.0, 'both'), 'a', 'b'),
+        assert list(stream_2['a']) == sorted([Link(Interval(0.0, 4.0, 'both'), 'a', 'b'),
                                         Link(Interval(2.0, 5.0, 'both'), 'a', 'c'),
                                         Link(Interval(6.0, 9.0, 'both'), 'a', 'b')])
-        assert stream['c'] == sorted([Link(Interval(4.5, 7.5, 'both'), 'a', 'c'),
+        assert list(stream['c']) == sorted([Link(Interval(4.5, 7.5, 'both'), 'a', 'c'),
                                       Link(Interval(6.0, 9.0, 'both'), 'b', 'c')])
-        assert stream['b', 'a'] == sorted([Link(Interval(1.0, 3.0, 'both'), 'a', 'b'),
+        assert list(stream['b', 'a']) == sorted([Link(Interval(1.0, 3.0, 'both'), 'a', 'b'),
                                            Link(Interval(7.0, 8.0, 'both'), 'a', 'b')])
 
     @pytest.mark.parametrize('new_link,result,node', [

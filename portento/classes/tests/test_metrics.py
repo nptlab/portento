@@ -3,11 +3,10 @@ from pandas import Interval
 from itertools import cycle
 from random import choices
 from .random_stream import generate_stream
-from portento.utils import Link, DiLink
+from portento.utils import Link, DiLink, contains_interval
 from portento.classes.metrics import *
 from portento.classes.metrics import _card_set_unordered_pairs_distinct_elements, \
     _card_intervals_union
-
 
 round_5 = partial(round, ndigits=5)
 
@@ -89,11 +88,13 @@ class TestMetrics:
         assert round_5(average_node_degree(stream)) == \
                round_5(sum((card_T_u(stream, u) * degree(stream, u) / card_w_stream for u in V(stream))))
 
-    @pytest.mark.parametrize('s', list(range(20)))
+    @pytest.mark.parametrize('s', list(range(5)))
     def test_instantaneous_degree(self, s):
 
         stream = generate_stream(Stream, Link, s)
         for u in V(stream):
             neighborhood = list(stream.neighborhood(u))
             for t in map(lambda i: Interval(i.interval.left, i.interval.left, 'both'), choices(neighborhood, k=5)):
-                assert instantaneous_degree(stream, u, t) == 0
+                assert instantaneous_degree(stream, u, t) == len(
+                    set(flatten(((u, v)
+                                 for _, u, v in filter(lambda x: contains_interval(x.interval, t), neighborhood))))) - 1

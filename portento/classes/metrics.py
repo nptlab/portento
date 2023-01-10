@@ -318,7 +318,7 @@ def instantaneous_degree(stream: Stream, u: Hashable, t: pd.Interval):
 
 
     """
-    return max(card_V_t(stream.neighborhood(u), t) - 1, 0)
+    return max(card_V_t(stream.neighborhood(u), t) - 1, 0)  # -1 because there's the node u
 
 
 def _all_possible_links(stream: Stream):

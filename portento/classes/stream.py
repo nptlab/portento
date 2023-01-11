@@ -42,6 +42,10 @@ class Stream:
     def edges(self):
         return self.dict_view.edges
 
+    @property
+    def instant_duration(self):
+        return self.tree_view._instant_duration
+
     def __iter__(self):
         return iter(self.tree_view)
 

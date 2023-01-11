@@ -15,7 +15,7 @@ from functools import partial
 from itertools import chain, combinations, permutations
 from more_itertools import flatten, unzip
 
-from portento.utils import IntervalTree
+from portento.utils import IntervalTree, split_in_instants
 from .stream import Stream, DiStream
 from .filters import filter_by_time, TimeFilter
 
@@ -330,7 +330,7 @@ def expected_degree_of_node(stream: Stream, u: Hashable):
     """
     return truediv(sum((instantaneous_degree(stream, u, pd.Interval(t, t, 'both'))
                         for interval in T_u(stream, u)
-                        for t in range(interval.left, interval.right + 1)
+                        for t in split_in_instants(interval, stream.instant_duration)
                         )), card_T_u(stream, u))
 
 
@@ -361,7 +361,7 @@ def average_time_degree(stream: Stream):
     return truediv(sum((mul(node_contribution_of_t(stream, pd.Interval(t, t, 'both')),
                             degree_at_t(stream, pd.Interval(t, t, 'both')))
                         for interval in T(stream)
-                        for t in range(interval.left, interval.right + 1)
+                        for t in split_in_instants(interval, stream.instant_duration)
                         )), node_duration(stream))
 
 

@@ -1,4 +1,5 @@
 import pandas as pd
+from numpy import arange
 import re
 from typing import Iterable
 from functools import reduce
@@ -44,7 +45,8 @@ def merge_interval(*intervals):
         Returns
         -------
         merged_interval : pandas Interval
-        """
+
+    """
     it_min, it_max = tee(filter(lambda x: bool(x), intervals), 2)
     min_interval = min(it_min, key=lambda x: _left_tuple(x))
     max_interval = max(it_max, key=lambda x: _right_tuple(x))
@@ -109,14 +111,39 @@ def compute_presence(intervals: Iterable[pd.Interval]):
     ----------
     intervals : Iterable
         Iterable of pandas Interval objects
-    interval_type : type
-        The type of the intervals boundaries
 
     Returns
     -------
     float
+
     """
     if intervals:
         return reduce(operator.add, map(_mapping_function, intervals))
     else:
         return 0
+
+
+def split_in_instants(interval: pd.Interval, instant_duration):
+    """Return the range of instants that are in an interval
+
+    Parameters
+    ----------
+    interval : Interval
+
+    instant_duration
+
+    Returns
+    -------
+    range
+
+    """
+    if interval.closed_left:
+        left = interval.left
+    else:
+        left = interval.left + instant_duration
+    if interval.closed_right:
+        right = interval.right
+    else:
+        right = interval.right - instant_duration
+
+    yield from arange(left, right + instant_duration, instant_duration)

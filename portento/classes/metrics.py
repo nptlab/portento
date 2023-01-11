@@ -10,12 +10,12 @@ Social Network Analysis and Mining 8.1 (2018): 1-29.
 from collections.abc import Hashable
 
 import pandas as pd
-from operator import truediv
+from operator import truediv, mul
 from functools import partial
 from itertools import chain, combinations, permutations
 from more_itertools import flatten, unzip
 
-from portento.utils import IntervalTree
+from portento.utils import IntervalTree, split_in_instants
 from .stream import Stream, DiStream
 from .filters import filter_by_time, TimeFilter
 
@@ -299,7 +299,7 @@ def average_degree(stream: Stream):
     """Average degree of the stream.
 
     """
-    return sum(degree(stream, u) * card_T_u(stream, u) for u in V(stream)) / card_W(stream)
+    return truediv(sum(degree(stream, u) * card_T_u(stream, u) for u in V(stream)), card_W(stream))
 
 
 def average_node_degree(stream: Stream):
@@ -309,16 +309,78 @@ def average_node_degree(stream: Stream):
 
     """
 
-    return sum((contribution_of_node(stream, u) * degree(stream, u) for u in V(stream))) / number_of_nodes(stream)
+    return truediv(sum((contribution_of_node(stream, u) * degree(stream, u) for u in V(stream))),
+                   number_of_nodes(stream))
 
 
 def instantaneous_degree(stream: Stream, u: Hashable, t: pd.Interval):
     """The instantaneous degree of a node.
 
-
+    The number of nodes in the neighborhood of node u at time t.
 
     """
     return max(card_V_t(stream.neighborhood(u), t) - 1, 0)  # -1 because there's the node u
+
+
+def expected_degree_of_node(stream: Stream, u: Hashable):
+    """Expected degree of a node.
+
+    The expected instantaneous degree of a node when it is involved in the stream.
+
+    """
+    return truediv(sum((instantaneous_degree(stream, u, pd.Interval(t, t, 'both'))
+                        for interval in T_u(stream, u)
+                        for t in split_in_instants(interval, stream.instant_duration)
+                        )), card_T_u(stream, u))
+
+
+def degree_at_t(stream: Stream, t: pd.Interval):
+    """Degree at time t.
+
+    The average of all instantaneous degrees over the cardinality of V.
+
+    """
+    return truediv(sum((instantaneous_degree(stream, u, t) for u in V(stream))), card_V(stream))
+
+
+def expected_degree_at_t(stream: Stream, t: pd.Interval):
+    """Expected degree at time t.
+
+    The average of all instantaneous degrees over the cardinality of V_t (nodes present at time t).
+
+    """
+    return truediv(sum((instantaneous_degree(stream, u, t) for u in V(stream))), card_V_t(stream, t))
+
+
+def average_time_degree(stream: Stream):
+    """Average time degree of the stream.
+
+    The weighted average of degrees at each time instant.
+
+    """
+    return truediv(sum((mul(node_contribution_of_t(stream, pd.Interval(t, t, 'both')),
+                            degree_at_t(stream, pd.Interval(t, t, 'both')))
+                        for interval in T(stream)
+                        for t in split_in_instants(interval, stream.instant_duration)
+                        )), node_duration(stream))
+
+
+def degree_of_stream(stream: Stream):
+    """Degree of the stream.
+
+    The average instantaneous degree of v at time t for a random (t; v).
+
+    """
+    return truediv(2 * card_E(stream), card_T(stream) * card_V(stream))
+
+
+def average_expected_degree(stream: Stream):
+    """Average expected degree of the stream.
+
+    The average instantaneous degree for (t; v) in W.
+
+    """
+    return truediv(2 * number_of_links(stream), number_of_nodes(stream))
 
 
 def _all_possible_links(stream: Stream):

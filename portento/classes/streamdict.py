@@ -97,7 +97,6 @@ class StreamDict:
         raise AttributeError("Tuple must have two nodes."
                              f"Instead got {len(item)} nodes.")
 
-
     def node_presence(self, node: Hashable):
         return self.nodes[node]
 

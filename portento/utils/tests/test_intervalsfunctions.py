@@ -1,7 +1,8 @@
 import pytest
 import pandas as pd
+import numpy as np
 
-from portento.utils import merge_interval
+from portento.utils import merge_interval, split_in_instants
 
 
 class TestIntervalMerge:
@@ -24,3 +25,14 @@ class TestIntervalMerge:
     def test_interval_merge_iter(self, intervals, args):
         left, right, close = args
         assert merge_interval(*intervals) == pd.Interval(left, right, close)
+
+
+class TestIntervalSplit:
+
+    @pytest.mark.parametrize('interval,instant_duration,res', [
+        (pd.Interval(0, 10, 'neither'), 1, np.arange(1, 10, 1)),
+        (pd.Interval(0, 1, 'right'), 0.1, np.arange(0.1, 1.1, 0.1)),
+        (pd.Interval(0, 1, 'left'), 0.2, np.arange(0, 1, 0.2))
+    ])
+    def test_interval_split(self, interval, instant_duration, res):
+        assert list(split_in_instants(interval, instant_duration)) == list(res)

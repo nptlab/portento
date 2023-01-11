@@ -95,6 +95,30 @@ class TestMetrics:
         for u in V(stream):
             neighborhood = list(stream.neighborhood(u))
             for t in map(lambda i: Interval(i.interval.left, i.interval.left, 'both'), choices(neighborhood, k=5)):
-                assert instantaneous_degree(stream, u, t) == len(
+                assert instantaneous_degree(stream, u, t) == max(len(
                     set(flatten(((u, v)
-                                 for _, u, v in filter(lambda x: contains_interval(x.interval, t), neighborhood))))) - 1
+                                 for _, u, v in
+                                 filter(lambda x: contains_interval(x.interval, t), neighborhood))))) - 1,
+                                                                 0)
+
+    @pytest.mark.parametrize('s', list(range(5)))
+    def test_average_time_degree(self, s):
+        stream = generate_stream(Stream, Link, s, n_links=50, t_range=range(15), u_range=range(7))
+        assert round_5(truediv(sum((mul(card_V_t(stream, pd.Interval(t, t, 'both')),
+                                        degree_at_t(stream, pd.Interval(t, t, 'both')))
+                                    for interval in T(stream)
+                                    for t in split_in_instants(interval, stream.instant_duration))),
+                               card_W(stream))) == \
+               round_5(average_time_degree(stream))
+
+    @pytest.mark.parametrize('s', list(range(5)))
+    def test_degree_of_stream(self, s):
+        stream = generate_stream(Stream, Link, s)
+        assert round_5(sum((degree(stream, u) for u in V(stream))) / card_V(stream)) == \
+               round_5(degree_of_stream(stream))
+
+    @pytest.mark.parametrize('s', list(range(5)))
+    def test_average_expected_degree(self, s):
+        stream = generate_stream(Stream, Link, s)
+        assert round_5(truediv(2 * card_E(stream), card_W(stream))) == \
+               round_5(average_expected_degree(stream))

@@ -12,7 +12,7 @@ def generate_random_links(n, t_range, u_range, link_type=Link):
         random_t = random.choice(t_range)
         random_delta = random.choice(range(1, 6))
 
-        interval = Interval(random_t, random_t + random_delta, 'left')
+        interval = Interval(random_t, random_t + random_delta, random.choice(['left', 'right', 'both', 'neither']))
 
         u = random.choice(u_range)
         v = u

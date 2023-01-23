@@ -9,6 +9,26 @@ from .utils import prepare_for_path_computation
 
 
 def earliest_arrival_time(stream: Stream, source: Hashable, time_bound: Interval = None):
+    """Compute the earliest arrival time from node source to each other node in the predefined time boundaries.
+
+    Parameters
+    ----------
+    stream : Stream or DiStream.
+
+    source : Node
+        The starting node.
+
+    time_bound : Interval
+        The time to take into account. Needed to perform a time slice over the stream.
+        Default is None.
+        If time_bound is None, use the whole stream.
+
+    Returns
+    -------
+    arrival_time : dict
+        The dictionary of the form {node : earliest arrival time from source node}
+
+    """
     if not time_bound:
         time_bound = stream.stream_presence.root.full_interval
 

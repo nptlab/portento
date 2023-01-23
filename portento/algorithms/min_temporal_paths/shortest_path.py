@@ -6,6 +6,9 @@ from .utils import prepare_for_path_computation
 
 
 def shortest_path_distance(stream: Stream, source: Hashable, time_bound: Interval = None):
+    """
+
+    """
     if not time_bound:
         time_bound = stream.stream_presence.root.full_interval
 

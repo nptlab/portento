@@ -29,17 +29,21 @@ class TestMinPaths:
         stream = Stream(intervals)
         assert earliest_arrival_time(stream, source)[target] == res
 
-    @pytest.mark.parametrize('intervals,source,target,res', [
-
+    @pytest.mark.parametrize('intervals,target,source,res', [
+        ([DiLink(Interval(0, 5), 0, 1), DiLink(Interval(4, 6), 1, 2)], 2, 0, 4),
+        ([DiLink(Interval(0, 3), 0, 1), DiLink(Interval(2, 4), 1, 2), DiLink(Interval(0, 2), 0, 2)], 2, 0, 2),
+        ([DiLink(Interval(0, 9), 0, 2), DiLink(Interval(0, 5), 1, 2), DiLink(Interval(3, 11), 0, 1)], 2, 0, 9),
+        ([DiLink(Interval(0, 9), 0, 2), DiLink(Interval(0, 12), 1, 2), DiLink(Interval(3, 11), 0, 1)], 2, 0, 10)
     ])
-    def test_latest_departure_di_stream(self, intervals, source, target, res):
+    def test_latest_departure_di_stream(self, intervals, target, source, res):
         stream = DiStream(intervals)
-        assert latest_departure_time(stream, source)[target] == res
+        assert latest_departure_time(stream, target)[source] == res
 
-    @pytest.mark.parametrize('intervals,source,target,res', [
-
+    @pytest.mark.parametrize('intervals,target,source,res', [
+        ([Link(Interval(0, 9), 2, 0), Link(Interval(0, 5), 1, 2), Link(Interval(3, 11), 1, 0)], 2, 0, 9),
+        ([Link(Interval(0, 9), 2, 0), Link(Interval(0, 12), 1, 2), Link(Interval(3, 11), 1, 0)], 2, 0, 10)
     ])
-    def test_latest_departure_stream(self, intervals, source, target, res):
+    def test_latest_departure_stream(self, intervals, target, source, res):
         stream = Stream(intervals)
         assert latest_departure_time(stream, source)[target] == res
 

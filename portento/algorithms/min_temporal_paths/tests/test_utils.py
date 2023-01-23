@@ -14,5 +14,14 @@ class TestUtils:
         prepared = list(_prepare_for_path_computation(stream))
         assert prepared == sorted(prepared, key=itemgetter(0))
 
-    def test_prepare_link(self):
-        pass
+        prepared = list(_prepare_for_path_computation(stream, reverse=True))
+        assert prepared == sorted(prepared, key=itemgetter(0), reverse=True)
+
+    @pytest.mark.parametrize('s', list(range(5)))
+    def test_prepare_link(self, s):
+        stream = generate_stream(Stream, Link, s)
+        prepared = list(_prepare_for_path_computation(stream))
+        assert prepared == sorted(prepared, key=itemgetter(0))
+
+        prepared = list(_prepare_for_path_computation(stream, reverse=True))
+        assert prepared == sorted(prepared, key=itemgetter(0), reverse=True)

@@ -1,11 +1,11 @@
-from itertools import repeat
+from itertools import repeat, tee
 from functools import singledispatch
 from heapq import merge
 from operator import itemgetter
 from pandas import Interval
 
-from portento.utils import split_in_instants, DiLink
-from portento.classes import Stream, DiStream, filter_by_time, TimeFilter
+from portento.utils import split_in_instants, DiLink, Link
+from portento.classes import Stream, DiStream, filter_by_time, TimeFilter, StreamTree
 
 
 @singledispatch
@@ -18,16 +18,27 @@ def _(stream: DiStream, time_bound=None, reverse=False):
     if not time_bound:
         time_bound = [stream.stream_presence.root.full_interval]
 
-    instants = merge(*map(lambda x: zip(split_in_instants(x.interval, stream.instant_duration),
-                                        repeat(({"u": x.u,
-                                                 "v": x.v}))),
-                          filter_by_time(stream.tree_view, TimeFilter(time_bound), DiLink)),
-                     key=itemgetter(0), reverse=reverse)
-
-    return instants
+    return _create_edge_representation(stream.tree_view, stream.instant_duration, time_bound, reverse, DiLink)
 
 
 @_prepare_for_path_computation.register
 def _(stream: Stream, time_bound=None, reverse=False):
     if not time_bound:
-        time_bound = stream.stream_presence.root.full_interval
+        time_bound = [stream.stream_presence.root.full_interval]
+
+    edge_repr, edge_repr_rev = tee(_create_edge_representation(stream.tree_view,
+                                                               stream.instant_duration, time_bound, reverse, Link), 2)
+
+    return merge(edge_repr, map(lambda x: (x[0], {"u": x[1]["v"], "v": x[1]["u"]}), edge_repr_rev),
+                 key=itemgetter(0), reverse=reverse)
+
+
+def _create_edge_representation(stream_tree: StreamTree, instant_duration, time_bound, reverse, link_type):
+    split_order = lambda x: reversed(list(x)) if reverse else list(x)
+    instants = merge(*map(lambda x: split_order(zip(split_in_instants(x.interval, instant_duration),
+                                                    repeat(({"u": x.u,
+                                                             "v": x.v})))),
+                          filter_by_time(stream_tree, TimeFilter(time_bound), link_type)),
+                     key=itemgetter(0), reverse=reverse)
+
+    return instants

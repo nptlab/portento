@@ -1,3 +1,4 @@
+from typing import List
 from itertools import repeat, tee
 from functools import singledispatch
 from heapq import merge
@@ -9,22 +10,18 @@ from portento.classes import Stream, DiStream, filter_by_time, TimeFilter, Strea
 
 
 @singledispatch
-def _prepare_for_path_computation(stream, time_bound: Interval = None, reverse=False):
+def _prepare_for_path_computation(stream, time_bound: List[Interval], reverse=False):
     pass
 
 
 @_prepare_for_path_computation.register
-def _(stream: DiStream, time_bound=None, reverse=False):
-    if not time_bound:
-        time_bound = [stream.stream_presence.root.full_interval]
+def _(stream: DiStream, time_bound, reverse=False):
 
     return _create_edge_representation(stream.tree_view, stream.instant_duration, time_bound, reverse, DiLink)
 
 
 @_prepare_for_path_computation.register
-def _(stream: Stream, time_bound=None, reverse=False):
-    if not time_bound:
-        time_bound = [stream.stream_presence.root.full_interval]
+def _(stream: Stream, time_bound, reverse=False):
 
     edge_repr, edge_repr_rev = tee(_create_edge_representation(stream.tree_view,
                                                                stream.instant_duration, time_bound, reverse, Link), 2)

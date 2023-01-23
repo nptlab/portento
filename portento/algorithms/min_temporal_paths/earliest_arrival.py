@@ -1,16 +1,14 @@
 """
 
 """
-from itertools import repeat
-from functools import singledispatch
-from heapq import merge
-from operator import itemgetter
 from pandas import Interval
-
-from portento.utils import split_in_instants, DiLink
-from portento.classes import Stream, DiStream, filter_by_time, TimeFilter
+from portento.classes import Stream
+from .utils import _prepare_for_path_computation
 
 
 def earliest_arrival_time(stream: Stream, time_bound: Interval = None):
-    pass
+    if not time_bound:
+        time_bound = [stream.stream_presence.root.full_interval]
+    iterator = _prepare_for_path_computation(stream, time_bound)
+
 

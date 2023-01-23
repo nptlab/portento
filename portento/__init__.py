@@ -8,5 +8,5 @@ from portento.classes import *
 from portento import algorithms
 from portento.algorithms import *
 
-from portento import convert
-from portento.convert import *
+from portento import readwrite
+from portento.readwrite import *

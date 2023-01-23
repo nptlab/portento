@@ -1,1 +1,1 @@
-from portento.algorithms import *
+from portento.algorithms import min_temporal_paths

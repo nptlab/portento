@@ -10,17 +10,17 @@ from portento.classes import Stream, DiStream, filter_by_time, TimeFilter, Strea
 
 
 @singledispatch
-def _prepare_for_path_computation(stream, time_bound: List[Interval], reverse=False):
+def prepare_for_path_computation(stream, time_bound: List[Interval], reverse=False):
     pass
 
 
-@_prepare_for_path_computation.register
+@prepare_for_path_computation.register
 def _(stream: DiStream, time_bound, reverse=False):
 
     return _create_edge_representation(stream.tree_view, stream.instant_duration, time_bound, reverse, DiLink)
 
 
-@_prepare_for_path_computation.register
+@prepare_for_path_computation.register
 def _(stream: Stream, time_bound, reverse=False):
 
     edge_repr, edge_repr_rev = tee(_create_edge_representation(stream.tree_view,

@@ -4,6 +4,7 @@ from functools import singledispatch
 from heapq import merge
 from operator import itemgetter
 from pandas import Interval
+from sortedcontainers import SortedKeyList
 
 from portento.utils import split_in_instants, DiLink, Link
 from portento.classes import Stream, DiStream, filter_by_time, TimeFilter, StreamTree
@@ -39,3 +40,7 @@ def _create_edge_representation(stream_tree: StreamTree, instant_duration, time_
                      key=itemgetter(0), reverse=reverse)
 
     return instants
+
+
+def remove_dominated_elements():
+    pass

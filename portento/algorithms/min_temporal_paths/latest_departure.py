@@ -26,6 +26,9 @@ def latest_departure_time(stream: Stream, target: Hashable, time_bound: Interval
         The dictionary of the form {node : latest departure time to reach target node}
 
     """
+    if not (target in stream):
+        raise AttributeError("The target node must be present in the stream.")
+
     if not time_bound:
         time_bound = stream.stream_presence.root.full_interval
 

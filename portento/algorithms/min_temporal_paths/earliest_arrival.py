@@ -29,6 +29,9 @@ def earliest_arrival_time(stream: Stream, source: Hashable, time_bound: Interval
         The dictionary of the form {node : earliest arrival time from source node}
 
     """
+    if not (source in stream):
+        raise AttributeError("The source node must be present in the stream.")
+
     if not time_bound:
         time_bound = stream.stream_presence.root.full_interval
 

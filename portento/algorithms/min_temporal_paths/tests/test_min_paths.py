@@ -52,7 +52,7 @@ class TestMinPaths:
         ([DiLink(Interval(0, 2), 0, 1), DiLink(Interval(0, 12), 2, 0)], 2, 0, 1),
         ([DiLink(Interval(0, 2), 0, 1), DiLink(Interval(1, 3), 2, 0)], 0, 2, float('inf'))
     ])
-    def test_fastest_path_di_stream(self, links, source, target, res):
+    def test_fastest_path_multipass_di_stream(self, links, source, target, res):
         stream = DiStream(links)
         assert fastest_path_duration_multipass(stream, source)[target] == res
 
@@ -62,9 +62,23 @@ class TestMinPaths:
         ([Link(Interval(0, 2), 0, 1), Link(Interval(0, 12), 2, 3)], 2, 0, float('inf')),
         ([Link(Interval(0, 2), 0, 1), Link(Interval(10, 12), 1, 2)], 0, 2, 11)
     ])
-    def test_fastest_path_stream(self, links, source, target, res):
+    def test_fastest_path_multipass_stream(self, links, source, target, res):
         stream = Stream(links)
         assert fastest_path_duration_multipass(stream, source)[target] == res
+
+    @pytest.mark.parametrize('links,source,target,res', [
+        ([Link(Interval(0, 2), 0, 1)], 1, 0, 1)
+    ])
+    def test_fastest_path_di_stream(self, links, source, target, res):
+        stream = Stream(links)
+        assert fastest_path_duration(stream, source)[target] == res
+
+    @pytest.mark.parametrize('links,source,target,res', [
+
+    ])
+    def test_fastest_path_stream(self, links, source, target, res):
+        stream = DiStream(links)
+        assert fastest_path_duration(stream, source)[target] == res
 
     @pytest.mark.parametrize('links,source,target,res', [
 

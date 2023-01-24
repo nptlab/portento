@@ -54,6 +54,8 @@ def remove_dominated_elements(tuples_list: SortedKeyList, new_tuple, dominated_b
         if dominated_by(candidate, new_tuple):
             new_tuples_list.remove(candidate)
 
+    new_tuples_list.add(new_tuple)
+
     return new_tuples_list
 
 

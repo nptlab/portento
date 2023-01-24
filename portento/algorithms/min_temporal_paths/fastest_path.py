@@ -6,11 +6,11 @@ from sortedcontainers import SortedKeyList
 from portento.classes import Stream, DiStream
 from portento.utils import get_start_end
 from .earliest_arrival import earliest_arrival_time
-from .utils import prepare_for_path_computation
+from .utils import prepare_for_path_computation, remove_dominated_elements
 
 
 def fastest_path_duration(stream: Stream, source: Hashable, time_bound: Interval = None):
-    """Compute the latest departure time from each node to the target node in the predefined time boundaries.
+    """Compute the fastest path duration from the source node to each other node in the predefined time boundaries.
 
     Parameters
     ----------
@@ -62,7 +62,7 @@ def fastest_path_duration(stream: Stream, source: Hashable, time_bound: Interval
 
 @singledispatch
 def fastest_path_duration_multipass(stream, source: Hashable, time_bound: Interval = None):
-    """Compute the latest departure time from each node to the target node in the predefined time boundaries.
+    """Compute the fastest path duration from the source node to each other node in the predefined time boundaries.
 
     DEPRECATED
     This implementation calls the earliest_arrival_time method for each instant in the time bound.

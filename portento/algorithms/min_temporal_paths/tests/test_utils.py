@@ -34,13 +34,17 @@ class TestUtils:
     def test_domination(self, s):
         random.seed(s)
         tuples_list = SortedKeyList(key=itemgetter(0))
-        for t in (random.choices(range(-10, 10), k=2) for _ in range(50)):
+        for t in (random.choices(range(0, 10), k=2) for _ in range(50)):
             new_tuples_list = tuples_list.copy()
+            dominated = False
             for c in new_tuples_list:
                 if t > c:
+                    dominated = True
                     break
                 if t <= c:
                     new_tuples_list.remove(c)
 
-            assert remove_dominated_elements(tuples_list, t) == new_tuples_list
+            if not dominated:
+                new_tuples_list.add(t)
 
+            assert remove_dominated_elements(tuples_list, t) == new_tuples_list

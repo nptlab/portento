@@ -65,23 +65,27 @@ def fastest_path_duration_multipass(stream, source: Hashable, time_bound: Interv
 
 @fastest_path_duration_multipass.register
 def _(stream: DiStream, source: Hashable, time_bound: Interval = None):
-    if not time_bound:
-        time_bound = stream.stream_presence.root.full_interval
-    else:
-        start_out_edges = (stream[source])
-        stream = DiStream(filter_by_time(stream.tree_view, TimeFilter([time_bound]), DiLink))
-
-    start, end = get_start_end(time_bound, stream.instant_duration)
-    path_duration = dict(((u, 0 if u == source else float('inf')) for u in stream.nodes))
+    return _fastest_path_call_earliest_arrival(stream, source, time_bound, lambda x: x.u == source)
 
 
 @fastest_path_duration_multipass.register
 def _(stream: Stream, source: Hashable, time_bound: Interval = None):
+    return _fastest_path_call_earliest_arrival(stream, source, time_bound)
+
+
+def _fastest_path_call_earliest_arrival(stream, source, time_bound, filter_links=lambda x: x):
     if not time_bound:
         time_bound = stream.stream_presence.root.full_interval
 
     start, end = get_start_end(time_bound, stream.instant_duration)
     path_duration = dict(((u, 0 if u == source else float('inf')) for u in stream.nodes))
 
-    for t in map(lambda link: get_start_end(link.interval, stream.instant_duration)[0], stream[source]):
-        pass
+    for t in map(lambda link: get_start_end(link.interval, stream.instant_duration)[0],
+                 filter(filter_links, stream[source])):
+        if t >= start and t + stream.instant_duration <= end:
+            earliest_arrival = earliest_arrival_time(stream, source, Interval(t, end, 'both'))
+
+            path_duration = dict(((u, min(path_duration[u], earliest_arrival[u] - t)) for u in stream.nodes))
+
+    return path_duration
+

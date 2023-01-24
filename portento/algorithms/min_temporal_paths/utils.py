@@ -42,5 +42,20 @@ def _create_edge_representation(stream_tree: StreamTree, instant_duration, time_
     return instants
 
 
-def remove_dominated_elements():
-    pass
+def remove_dominated_elements(tuples_list: SortedKeyList, new_tuple, dominated_by=lambda x, y: x >= y):
+    """Suppose the tuple list is a SortedKeyList (key is the first element of the tuple)"""
+    new_tuples_list = tuples_list.copy()
+    # if the new tuple is dominated or already in the list, do nothing
+    for candidate in new_tuples_list.irange_key(min_key=0, max_key=new_tuple[0], reverse=True):
+        if dominated_by(new_tuple, candidate):
+            return new_tuples_list
+
+    for candidate in new_tuples_list.irange_key(min_key=new_tuple[0]):
+        if dominated_by(candidate, new_tuple):
+            new_tuples_list.remove(candidate)
+
+    return new_tuples_list
+
+
+
+

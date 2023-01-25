@@ -41,6 +41,18 @@ def _create_edge_representation(stream_tree: StreamTree, instant_duration, time_
     return instants
 
 
+def dominates(tuple_1, tuple_2, neg=True):
+    tuple_1_val, tuple_1_a = tuple_1
+    tuple_2_val, tuple_2_a = tuple_2
+
+    if neg:
+        tuple_1_val *= -1
+        tuple_2_val *= -1
+
+    return ((tuple_1_val < tuple_2_val and tuple_1_a <= tuple_2_a) or
+            (tuple_1_val == tuple_2_val and tuple_1_a < tuple_2_a))
+
+
 def find_le_idx(a, x):
     """Find rightmost value less than or equal to x
 
@@ -59,31 +71,26 @@ def find_le(a, x):
     return a[find_le_idx(a, x)]
 
 
-def filter_out_candidate(candidate_tuples, min_key):
+def filter_out_candidate(candidate_tuples, dominating_key_idx):
     """Filter out candidates in which their key is less than min_key"""
-    # TODO the min key is not correct
-    return SortedKeyList(candidate_tuples.irange_key(min_key=min_key), key=candidate_tuples.key)
+
+    return SortedKeyList(candidate_tuples[dominating_key_idx:], key=candidate_tuples.key)
 
 
 def update_on_new_candidate(candidate_tuples, candidate, neg=False):
     """Returns the updated SortedKeyList according to the new candidate"""
-    mult = 1
-    if neg:
-        mult = -1
-
-    candidate_val, candidate_a = candidate
 
     # get the tail of the SortedKeyList. If empty, return a default value that is always dominated
-    tail_val, tail_a = candidate_tuples[-1] if len(candidate_tuples) > 0 else (candidate_val, candidate_a)
+    tail = candidate_tuples.pop() if len(candidate_tuples) > 0 else (float('inf') * (-1 if neg else 1), float('inf'))
 
-    candidate_val *= mult
-    tail_val *= mult
-
-    if not (tail_val <= candidate_val and tail_a <= candidate_a):  # the tail does not dominate the new tuple
-
-        if candidate_val <= tail_val and candidate_a <= tail_a:  # the new candidate tuple dominates the tail
-            candidate_tuples.discard((tail_val * mult, tail_a))
-
-        candidate_tuples.add((candidate_val * mult, candidate_a))
+    if dominates(candidate, tail, neg):  # the candidate tuple dominates the tail
+        candidate_tuples.add(candidate)
+    elif dominates(tail, candidate, neg):  # the tail dominates the candidate tuple
+        candidate_tuples.add(tail)
+    elif tail != candidate:  # there's no domination and the two tuples are different
+        candidate_tuples.add(tail)
+        candidate_tuples.add(candidate)
+    else:
+        candidate_tuples.add(tail)
 
     return candidate_tuples

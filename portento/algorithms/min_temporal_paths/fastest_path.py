@@ -41,28 +41,42 @@ def fastest_path_duration(stream: Stream, source: Hashable, time_bound: Interval
     pairs_start_arrival_time = dict(((u, SortedKeyList(key=itemgetter(1))) for u in stream.nodes))
 
     for t, nodes in prepare_for_path_computation(stream, [time_bound]):
-        if t >= start and t + stream.instant_duration <= end:
+        if True:
             u, v = nodes["u"], nodes["v"]
             if u == source:
                 pairs_start_arrival_time[source].add((t, t))
 
             pairs_u, pairs_v = pairs_start_arrival_time[u].copy(), pairs_start_arrival_time[v].copy()
+            print("u", u)
+            print("v", v)
+            print("pairs u,", pairs_u)
+            print("pairs v,", pairs_v)
 
             # extract the pair with the largest arrival time that is less than or equal to t
             if len(pairs_u) > 0:
 
-                starting_u, arrival_u = find_le(pairs_u, t)
+                tuple_idx = find_le_idx(pairs_u, t)
+                starting_u, arrival_u = pairs_u[tuple_idx]
                 starting_v, arrival_v = starting_u, t + stream.instant_duration
 
                 # filter out dominated candidates
-                filter_out_candidate(pairs_u, arrival_u)
+                pairs_u = filter_out_candidate(pairs_u, tuple_idx)
 
                 # compare selected pair with the tail of pairs in v
-                update_on_new_candidate(pairs_v, (starting_v, arrival_v))
+                pairs_v = update_on_new_candidate(pairs_v, (starting_v, arrival_v), True)
+
+                print("tuple", (starting_v, arrival_v))
+                print("pairs u,", pairs_u)
+                print("pairs v,", pairs_v)
+
 
                 pairs_start_arrival_time[u], pairs_start_arrival_time[v] = pairs_u, pairs_v
 
                 path_duration[v] = min(path_duration[v], arrival_v - starting_v)
+            else:
+                print("empty")
+
+            print("XXXXXXXXX")
 
         elif t >= end:
             break
@@ -102,26 +116,26 @@ def fastest_path_duration_multipass(stream, source: Hashable, time_bound: Interv
 
 @fastest_path_duration_multipass.register
 def _(stream: DiStream, source: Hashable, time_bound: Interval = None):
-    return _fastest_path_call_earliest_arrival(stream, source, time_bound, lambda x: x.u == source)
+    return _fastest_path_call_earliest_arrival(stream, source, time_bound, lambda x: x["u"] == source)
 
 
 @fastest_path_duration_multipass.register
 def _(stream: Stream, source: Hashable, time_bound: Interval = None):
-    return _fastest_path_call_earliest_arrival(stream, source, time_bound)
+    return _fastest_path_call_earliest_arrival(stream, source, time_bound, lambda x: (x["u"] == source or
+                                                                                      x["v"] == source))
 
 
-def _fastest_path_call_earliest_arrival(stream, source, time_bound, filter_links=lambda x: x):
+def _fastest_path_call_earliest_arrival(stream, source, time_bound, filter_links):
     if not time_bound:
         time_bound = stream.stream_presence.root.full_interval
 
     start, end = get_start_end(time_bound, stream.instant_duration)
     path_duration = dict(((u, 0 if u == source else float('inf')) for u in stream.nodes))
 
-    for t in map(lambda link: get_start_end(link.interval, stream.instant_duration)[0],
-                 filter(filter_links, stream[source])):
-        if t >= start and t + stream.instant_duration <= end:
-            earliest_arrival = earliest_arrival_time(stream, source, Interval(t, end, 'both'))
-
-            path_duration = dict(((u, min(path_duration[u], earliest_arrival[u] - t)) for u in stream.nodes))
+    for t, nodes in prepare_for_path_computation(stream, [time_bound]):
+        if filter_links(nodes):
+            if t >= start and t + stream.instant_duration <= end:
+                earliest_arrival = earliest_arrival_time(stream, source, Interval(t, end, 'both'))
+                path_duration = dict(((u, min(path_duration[u], earliest_arrival[u] - t)) for u in earliest_arrival))
 
     return path_duration

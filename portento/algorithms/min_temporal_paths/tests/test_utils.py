@@ -4,7 +4,8 @@ import random
 from sortedcontainers import SortedKeyList
 from portento.classes import Stream, DiStream
 from portento.utils import Link, DiLink
-from portento.algorithms.min_temporal_paths.utils import prepare_for_path_computation, remove_dominated_elements
+from portento.algorithms.min_temporal_paths.utils import prepare_for_path_computation, find_le, \
+    update_on_new_candidate, filter_out_candidate
 from .random_stream import generate_stream
 
 
@@ -30,21 +31,8 @@ class TestUtils:
                                                      reverse=True))
         assert prepared == sorted(prepared, key=itemgetter(0), reverse=True)
 
-    @pytest.mark.parametrize('s', list(range(20)))
-    def test_domination(self, s):
-        random.seed(s)
-        tuples_list = SortedKeyList(key=itemgetter(0))
-        for t in (random.choices(range(0, 10), k=2) for _ in range(50)):
-            new_tuples_list = tuples_list.copy()
-            dominated = False
-            for c in new_tuples_list:
-                if t > c:
-                    dominated = True
-                    break
-                if t <= c:
-                    new_tuples_list.remove(c)
 
-            if not dominated:
-                new_tuples_list.add(t)
-
-            assert remove_dominated_elements(tuples_list, t) == new_tuples_list
+    def test_remove(self):
+        s = SortedKeyList([(3, 12), (4, 14), (5, 15)], key=itemgetter(1))
+        c = 15
+        assert list(filter_out_candidate(s, c)) == [(4, 14), (5, 15)]

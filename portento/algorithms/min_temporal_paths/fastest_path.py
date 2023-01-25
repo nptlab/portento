@@ -6,7 +6,7 @@ from sortedcontainers import SortedKeyList
 from portento.classes import Stream, DiStream
 from portento.utils import get_start_end
 from .earliest_arrival import earliest_arrival_time
-from .utils import prepare_for_path_computation, remove_dominated_elements
+from .utils import prepare_for_path_computation, find_le, find_le_idx, update_on_new_candidate, filter_out_candidate
 
 
 def fastest_path_duration(stream: Stream, source: Hashable, time_bound: Interval = None):
@@ -41,18 +41,28 @@ def fastest_path_duration(stream: Stream, source: Hashable, time_bound: Interval
     pairs_start_arrival_time = dict(((u, SortedKeyList(key=itemgetter(1))) for u in stream.nodes))
 
     for t, nodes in prepare_for_path_computation(stream, [time_bound]):
-        if t + stream.instant_duration <= end:
+        if t >= start and t + stream.instant_duration <= end:
             u, v = nodes["u"], nodes["v"]
             if u == source:
                 pairs_start_arrival_time[source].add((t, t))
 
-            starting_v, _ = max(pairs_start_arrival_time[u].irange_key(min_key=0, max_key=t),
-                                default=(float('-inf'), 0))
-            arrival_v = (t + stream.instant_duration) if starting_v > float('-inf') else float('inf')
-            pairs_start_arrival_time[v].add((starting_v, arrival_v))
+            pairs_u, pairs_v = pairs_start_arrival_time[u].copy(), pairs_start_arrival_time[v].copy()
 
-            # TODO remove dominated elements
-            path_duration[v] = min(path_duration[v], arrival_v - starting_v)
+            # extract the pair with the largest arrival time that is less than or equal to t
+            if len(pairs_u) > 0:
+
+                starting_u, arrival_u = find_le(pairs_u, t)
+                starting_v, arrival_v = starting_u, t + stream.instant_duration
+
+                # filter out dominated candidates
+                filter_out_candidate(pairs_u, arrival_u)
+
+                # compare selected pair with the tail of pairs in v
+                update_on_new_candidate(pairs_v, (starting_v, arrival_v))
+
+                pairs_start_arrival_time[u], pairs_start_arrival_time[v] = pairs_u, pairs_v
+
+                path_duration[v] = min(path_duration[v], arrival_v - starting_v)
 
         elif t >= end:
             break

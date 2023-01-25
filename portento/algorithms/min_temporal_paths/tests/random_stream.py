@@ -12,15 +12,15 @@ def generate_random_links(n, t_range, u_range, link_type=Link):
         random_t = random.choice(t_range)
         random_delta = random.choice(range(1, 6))
 
-        interval = Interval(random_t, random_t + random_delta, random.choice(['left', 'right', 'both', 'neither']))
+        interval = Interval(random_t, random_t + random_delta, random.choice(['both', 'left', 'right', 'neither']))
 
         u = random.choice(u_range)
         v = u
         while v == u:
             v = random.choice(u_range)
 
-        if interval.closed == 'neither' and interval.length == 1:
-            interval = Interval(interval.left, interval.right + 1, 'neither')
+        if interval.closed == 'neither' and interval.length <= 1:
+            interval = Interval(interval.left, interval.right + 1, 'right')
 
         yield create_link(link_type=link_type, interval=interval, u=u, v=v)
 

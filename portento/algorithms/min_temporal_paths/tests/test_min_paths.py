@@ -110,12 +110,13 @@ class TestMinPaths:
         assert shortest_path_distance(stream, source)[target] == res
 
     @pytest.mark.parametrize('links,source,target,res', [
-        ([(DiLink(Interval(0, 2), 0, 1))], 0, 1, 1),
-        ([(DiLink(Interval(0, 2), 1, 0))], 0, 1, 1),
-        ([(DiLink(Interval(9, 11), 0, 2)), DiLink(Interval(0, 2), 0, 1), DiLink(Interval(1, 3), 1, 2)], 0, 2, 1),
-        ([(DiLink(Interval(9, 11), 0, 2)), DiLink(Interval(0, 2), 1, 0), DiLink(Interval(1, 3), 1, 2)],
+        ([(Link(Interval(0, 2), 0, 1))], 0, 1, 1),
+        ([(Link(Interval(0, 2), 1, 0))], 0, 1, 1),
+        ([(Link(Interval(9, 11), 0, 2)), Link(Interval(0, 2), 0, 1), Link(Interval(1, 3), 1, 2)], 0, 2, 1),
+        ([(Link(Interval(9, 11), 0, 2)), Link(Interval(0, 2), 1, 0), Link(Interval(1, 3), 1, 2)],
          0, 1, 1),
-        ([DiLink(Interval(0, 2), 0, 1), DiLink(Interval(1, 3), 1, 2)], 0, 2, 2)
+        ([Link(Interval(0, 2), 0, 1), Link(Interval(1, 3), 1, 2)], 0, 2, 2),
+        ([Link(Interval(2, 4), 0, 1), Link(Interval(0, 2), 1, 2)], 0, 2, float('inf'))
     ])
     def test_shortest_path_stream(self, links, source, target, res):
         stream = Stream(links)

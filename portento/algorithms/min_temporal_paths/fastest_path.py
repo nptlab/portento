@@ -49,11 +49,11 @@ def fastest_path_duration(stream: Stream, source: Hashable, time_bound: Interval
 
             pairs_u, pairs_v = pairs_start_arrival_time[u].copy(), pairs_start_arrival_time[v].copy()
 
-            # extract the pair with the largest arrival time that is less than or equal to t
             if len(pairs_u) > 0:
-
+                # extract the pair with the largest arrival time that is less than or equal to t
                 tuple_idx = find_le_idx(pairs_u, t)
                 starting_u, arrival_u = pairs_u[tuple_idx]
+
                 if arrival_u < t_plus_trav:
                     starting_v, arrival_v = starting_u, t_plus_trav
 

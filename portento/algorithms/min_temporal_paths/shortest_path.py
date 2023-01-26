@@ -5,7 +5,7 @@ from operator import itemgetter, le
 from sortedcontainers import SortedKeyList
 from portento.classes import Stream
 from portento.utils import get_start_end
-from .utils import prepare_for_path_computation, update_on_new_candidate, filter_out_candidate
+from .utils import prepare_for_path_computation, update_on_new_candidate, get_idx_filtered_candidates
 
 
 def shortest_path_distance(stream: Stream, source: Hashable, time_bound: Interval = None):
@@ -49,16 +49,17 @@ def shortest_path_distance(stream: Stream, source: Hashable, time_bound: Interva
 
             pairs_u, pairs_v = pairs_distance_arrival_time[u].copy(), pairs_distance_arrival_time[v].copy()
 
-            # extract the pair with the largest arrival time that is less than or equal to t
             if len(pairs_u) > 0:
-
-                tuple_idx = argmax(list(filter(lambda x: le(x, t), map(itemgetter(1), pairs_u))))
+                # extract the pair with the largest arrival time that is less than or equal to t
+                tuple_idx, to_remove_idx = get_idx_filtered_candidates(pairs_u, t)
                 distance_u, arrival_u = pairs_u[tuple_idx]
+
                 if arrival_u < t_plus_trav:
                     distance_v, arrival_v = distance_u + stream.instant_duration, t_plus_trav
 
                     # filter out dominated candidates
-                    pairs_u = filter_out_candidate(pairs_u, tuple_idx)
+                    for i in to_remove_idx:
+                        pairs_u.pop(i)
 
                     # compare selected pair with the tail of pairs in v
                     pairs_v = update_on_new_candidate(pairs_v, (distance_v, arrival_v), neg=False)

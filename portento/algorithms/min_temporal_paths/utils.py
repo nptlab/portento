@@ -71,13 +71,13 @@ def find_le(a, x):
     return a[find_le_idx(a, x)]
 
 
-def filter_out_candidate(candidate_tuples, dominating_key_idx):
+def filter_out_candidate(candidate_tuples, dominating_idx):
     """Filter out candidates in which their key is less than min_key"""
 
-    return SortedKeyList(candidate_tuples[dominating_key_idx:], key=candidate_tuples.key)
+    return SortedKeyList(candidate_tuples[dominating_idx:], key=candidate_tuples.key)
 
 
-def update_on_new_candidate(candidate_tuples, candidate, neg=False):
+def update_on_new_candidate(candidate_tuples, candidate, neg=True):
     """Returns the updated SortedKeyList according to the new candidate"""
 
     # get the tail of the SortedKeyList. If empty, return a default value that is always dominated

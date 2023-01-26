@@ -61,7 +61,7 @@ def fastest_path_duration(stream: Stream, source: Hashable, time_bound: Interval
                     pairs_u = filter_out_candidate(pairs_u, tuple_idx)
 
                     # compare selected pair with the tail of pairs in v
-                    pairs_v = update_on_new_candidate(pairs_v, (starting_v, arrival_v), True)
+                    pairs_v = update_on_new_candidate(pairs_v, (starting_v, arrival_v))
 
                     pairs_start_arrival_time[u], pairs_start_arrival_time[v] = pairs_u, pairs_v
                     path_duration[v] = min(path_duration[v], arrival_v - starting_v)

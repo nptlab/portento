@@ -1,5 +1,6 @@
 """Functions to convert a stream graph to and from other formats.
 """
+
 import pandas as pd
 
 import portento

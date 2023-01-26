@@ -30,9 +30,17 @@ class TestIntervalMerge:
 class TestIntervalSplit:
 
     @pytest.mark.parametrize('interval,instant_duration,res', [
-        (pd.Interval(0, 10, 'neither'), 1, np.arange(1, 10, 1)),
-        (pd.Interval(0, 1, 'right'), 0.1, np.arange(0.1, 1.1, 0.1)),
-        (pd.Interval(0, 1, 'left'), 0.2, np.arange(0, 1, 0.2))
+        (pd.Interval(0, 10, 'neither'), 1, (1, 10, 1)),
+        (pd.Interval(0, 1, 'right'), 0.1, (0.1, 1.1, 0.1)),
+        (pd.Interval(0, 1, 'left'), 0.2, (0, 1, 0.2))
     ])
     def test_interval_split(self, interval, instant_duration, res):
-        assert list(split_in_instants(interval, instant_duration)) == list(res)
+        n_digits = len((str(instant_duration) + ".").split(".")[1])
+        res_list = []
+        start, end, step = res
+        counter = start
+        while counter < end:
+            res_list.append(counter)
+            counter = round(counter + step, ndigits=n_digits)
+
+        assert list(split_in_instants(interval, instant_duration)) == res_list

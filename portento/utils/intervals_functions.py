@@ -1,10 +1,12 @@
+from math import floor
 import pandas as pd
-from numpy import arange
+from numpy import arange, linspace
 import re
 from typing import Iterable
 from functools import reduce
 from itertools import tee
 import operator
+from more_itertools import first, last
 
 
 def compute_closure(closed_left, closed_right):
@@ -137,6 +139,9 @@ def split_in_instants(interval: pd.Interval, instant_duration):
     range
 
     """
+
+    n_digits = len((str(instant_duration)+".").split(".")[1])
+
     if interval.closed_left:
         left = interval.left
     else:
@@ -146,4 +151,14 @@ def split_in_instants(interval: pd.Interval, instant_duration):
     else:
         right = interval.right - instant_duration
 
-    yield from arange(left, right + instant_duration, instant_duration)
+    counter = left
+    while counter <= right:
+        yield counter
+        counter = round(counter + instant_duration, ndigits=n_digits)
+
+
+def get_start_end(interval: pd.Interval, instant_duration):
+    instants = split_in_instants(interval, instant_duration)
+    start = first(instants)
+    end = last(instants, start)
+    return start, max(end, end - instant_duration)

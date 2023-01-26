@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 from sortedcontainers import SortedSet
 
-from portento.convert import *
+from portento.readwrite import *
 
 
 @pytest.fixture

@@ -1,5 +1,5 @@
 import pytest
-from pandas import Interval, Timestamp
+from pandas import Interval
 
 from portento import Stream
 from portento.utils import Link, compute_presence

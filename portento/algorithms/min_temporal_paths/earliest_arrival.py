@@ -41,8 +41,8 @@ def earliest_arrival_time(stream: Stream, source: Hashable, time_bound: Interval
 
     for t, nodes in prepare_for_path_computation(stream, [time_bound]):
         t_plus_trav = t + stream.instant_duration
-        if t_plus_trav <= end and t >= arrival_time[nodes["u"]]:
-            if t_plus_trav < arrival_time[nodes["v"]]:
+        if t_plus_trav <= end and t >= arrival_time[nodes["u"]]:  # already reached the source node
+            if t_plus_trav < arrival_time[nodes["v"]]:  # can improve the arrival time of the target
                 arrival_time[nodes["v"]] = t_plus_trav
 
         elif t >= end:

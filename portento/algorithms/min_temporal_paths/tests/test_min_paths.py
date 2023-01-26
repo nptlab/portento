@@ -85,15 +85,15 @@ class TestMinPaths:
         stream = Stream(links)
         assert fastest_path_duration(stream, source)[target] == res
 
-    @pytest.mark.parametrize('s', list(range(1)))
+    @pytest.mark.parametrize('s', list(range(20)))
     def test_fastest_path_di_stream(self, s):
-        stream = generate_stream(DiStream, DiLink, s, n_links=200, t_range=range(50), u_range=range(20))
+        stream = generate_stream(DiStream, DiLink, s, n_links=50, t_range=range(20), u_range=range(10))
         for source in stream.nodes:
             assert fastest_path_duration(stream, source) == fastest_path_duration_multipass(stream, source)
 
-    @pytest.mark.parametrize('s', list(range(6, 7)))
+    @pytest.mark.parametrize('s', list(range(20)))
     def test_fastest_path_stream(self, s):
-        stream = generate_stream(Stream, Link, s)
+        stream = generate_stream(Stream, Link, s, n_links=50, t_range=range(20), u_range=range(10))
         for source in stream.nodes:
             assert fastest_path_duration(stream, source) == fastest_path_duration_multipass(stream, source)
 

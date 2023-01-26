@@ -6,7 +6,7 @@ from sortedcontainers import SortedKeyList
 from portento.classes import Stream, DiStream
 from portento.utils import get_start_end
 from .earliest_arrival import earliest_arrival_time
-from .utils import prepare_for_path_computation, find_le, find_le_idx, update_on_new_candidate, filter_out_candidate
+from .utils import prepare_for_path_computation, find_le_idx, update_on_new_candidate, filter_out_candidate
 
 
 def fastest_path_duration(stream: Stream, source: Hashable, time_bound: Interval = None):
@@ -41,42 +41,30 @@ def fastest_path_duration(stream: Stream, source: Hashable, time_bound: Interval
     pairs_start_arrival_time = dict(((u, SortedKeyList(key=itemgetter(1))) for u in stream.nodes))
 
     for t, nodes in prepare_for_path_computation(stream, [time_bound]):
-        if True:
+        t_plus_trav = t + stream.instant_duration
+        if t_plus_trav <= end:
             u, v = nodes["u"], nodes["v"]
             if u == source:
                 pairs_start_arrival_time[source].add((t, t))
 
             pairs_u, pairs_v = pairs_start_arrival_time[u].copy(), pairs_start_arrival_time[v].copy()
-            print("u", u)
-            print("v", v)
-            print("pairs u,", pairs_u)
-            print("pairs v,", pairs_v)
 
             # extract the pair with the largest arrival time that is less than or equal to t
             if len(pairs_u) > 0:
 
                 tuple_idx = find_le_idx(pairs_u, t)
                 starting_u, arrival_u = pairs_u[tuple_idx]
-                starting_v, arrival_v = starting_u, t + stream.instant_duration
+                if arrival_u < t_plus_trav:
+                    starting_v, arrival_v = starting_u, t_plus_trav
 
-                # filter out dominated candidates
-                pairs_u = filter_out_candidate(pairs_u, tuple_idx)
+                    # filter out dominated candidates
+                    pairs_u = filter_out_candidate(pairs_u, tuple_idx)
 
-                # compare selected pair with the tail of pairs in v
-                pairs_v = update_on_new_candidate(pairs_v, (starting_v, arrival_v), True)
+                    # compare selected pair with the tail of pairs in v
+                    pairs_v = update_on_new_candidate(pairs_v, (starting_v, arrival_v), True)
 
-                print("tuple", (starting_v, arrival_v))
-                print("pairs u,", pairs_u)
-                print("pairs v,", pairs_v)
-
-
-                pairs_start_arrival_time[u], pairs_start_arrival_time[v] = pairs_u, pairs_v
-
-                path_duration[v] = min(path_duration[v], arrival_v - starting_v)
-            else:
-                print("empty")
-
-            print("XXXXXXXXX")
+                    pairs_start_arrival_time[u], pairs_start_arrival_time[v] = pairs_u, pairs_v
+                    path_duration[v] = min(path_duration[v], arrival_v - starting_v)
 
         elif t >= end:
             break

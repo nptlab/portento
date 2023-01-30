@@ -22,3 +22,4 @@ N_NODES = list(map(lambda x: 100 * x, [1, 5]))  # number of nodes in the stream.
 # DEFAULT: list(map(lambda x: 100 * x, [1, 5, 10, 50]))
 PERC_MEAN_INT_LEN = [0.001 * i for i in accumulate(repeat(100, 2), mul)]  # percentage of the length of a link
 # based on TIME_BOUND. DEFAULT: [0.001 * i for i in accumulate(repeat(10, 4), mul)]
+UNIT_MEASURE = 10e3  # milliseconds

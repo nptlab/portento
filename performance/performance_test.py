@@ -76,7 +76,8 @@ def merge_results(n_nodes, perc_mean_int_len, condition="desc_str in eval_file")
             used.append(filepath)
 
     df = df.drop((n_nodes, perc_mean_int_len, -1), axis=1)
-    # TODO some data modification here
+    if not condition == "True":
+        df = create_min_max_mean_df(df)
     filepath = path.join(ADD_PERFORMANCE_PATH, descriptive_str_from_substr(desc_str))
     dump(df, open(filepath, 'wb'))
     for u in used:
@@ -92,7 +93,6 @@ if __name__ == "__main__":
         pool.starmap(performance_test, combos)
 
     combos = set(map(lambda x: x[1:], combos))
-    print(combos)
     with Pool() as pool:
         pool.starmap(merge_results, combos)
 

@@ -36,6 +36,7 @@ def import_malawi_data_as_df():
     malawi.t = malawi.t.apply(lambda x: pd.Interval(x, x, 'both'))
     return malawi
 
+
 malawi_df = import_malawi_data_as_df()
 
 if not path.exists(STREAM_PICKLE):

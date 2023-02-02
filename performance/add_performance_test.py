@@ -1,5 +1,6 @@
 import random
 import logging
+from multiprocessing import Pool
 from os import makedirs, remove, listdir
 from pickle import dump, load
 from timeit import Timer
@@ -10,14 +11,6 @@ from utils import *
 from setup import *
 
 import pandas as pd
-
-if not path.exists(STREAM_PICKLE_PATH):
-    makedirs(STREAM_PICKLE_PATH)
-
-if not path.exists(ADD_PERFORMANCE_PATH):
-    makedirs(ADD_PERFORMANCE_PATH)
-
-combos = list(product(range(TEST_REP), N_NODES, PERC_MEAN_INT_LEN))  # seed, n_nodes, perc_mean_int_len
 
 
 def performance_test(seed, n_nodes, perc_mean_int_len):
@@ -87,8 +80,23 @@ def merge_results(n_nodes, perc_mean_int_len, condition="desc_str in eval_file")
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.NOTSET)
-    combos = list(product(range(TEST_REP), N_NODES, PERC_MEAN_INT_LEN))  # seed, n_nodes, perc_mean_int_len
+    handler = logging.FileHandler('add_performance.log')
+    handler.setLevel(logging.NOTSET)
+    # set the new log handler
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
+
+    if not path.exists(STREAM_PICKLE_PATH):
+        makedirs(STREAM_PICKLE_PATH)
+
+    if not path.exists(ADD_PERFORMANCE_PATH):
+        makedirs(ADD_PERFORMANCE_PATH)
+
+    n_run = range(TEST_REP * len(N_NODES) * len(PERC_MEAN_INT_LEN))  # a different seed for each combination
+    combos = product(range(TEST_REP), N_NODES, PERC_MEAN_INT_LEN)  # n, n_nodes, perc_mean_int_len
+    combos = [(n_run[i], n_nodes, perc) for i, (_, n_nodes, perc) in enumerate(combos)]  # seed, n_nodes,
+    # perc_mean_int_len
     with Pool() as pool:
         pool.starmap(performance_test, combos)
 

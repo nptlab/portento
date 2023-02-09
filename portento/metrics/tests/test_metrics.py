@@ -2,10 +2,10 @@ import pytest
 from pandas import Interval
 from itertools import cycle
 from random import choices
-from .random_stream import generate_stream
+from portento.classes.tests.random_stream import generate_stream
 from portento.utils import Link, DiLink, contains_interval
-from portento.classes.metrics import *
-from portento.classes.metrics import _card_set_unordered_pairs_distinct_elements, \
+from portento.metrics.metrics import *
+from portento.metrics.metrics import _card_set_unordered_pairs_distinct_elements, \
     _card_intervals_union
 
 round_5 = partial(round, ndigits=5)

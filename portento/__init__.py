@@ -9,3 +9,9 @@ from portento.algorithms import *
 
 from portento import readwrite
 from portento.readwrite import *
+
+from portento import metrics
+from portento.metrics import *
+
+from portento import slicing
+from portento.slicing import *

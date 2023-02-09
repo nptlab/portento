@@ -7,7 +7,8 @@ from pandas import Interval
 from sortedcontainers import SortedKeyList
 
 from portento.utils import split_in_instants, DiLink, Link
-from portento.classes import Stream, DiStream, slice_by_time, TimeFilter, StreamTree
+from portento.classes import Stream, DiStream, StreamTree
+from portento.slicing import slice_by_time, TimeFilter
 
 
 @singledispatch

@@ -5,9 +5,9 @@ from heapq import merge
 from itertools import repeat
 from sortedcontainers.sortedlist import SortedList
 
-from .streamdict import StreamDict
-from .stream import Stream, DiStream
-from .streamtree import StreamTree, StreamTreeNode
+from portento.classes.streamdict import StreamDict
+from portento.classes.stream import Stream, DiStream
+from portento.classes.streamtree import StreamTree, StreamTreeNode
 from portento.utils import IntervalTree, IntervalTreeNode, Link, DiLink, cut_interval
 
 

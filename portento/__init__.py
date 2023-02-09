@@ -1,4 +1,5 @@
 from portento import utils
+from portento.utils import *
 
 from portento import classes
 from portento.classes import *

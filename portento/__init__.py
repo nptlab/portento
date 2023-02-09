@@ -1,5 +1,3 @@
-from portento.exception import *
-
 from portento import utils
 
 from portento import classes

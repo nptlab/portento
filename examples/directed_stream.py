@@ -38,12 +38,11 @@ print(baboons)
 print(baboon_df[:10])
 
 if not path.exists(STREAM_PICKLE):
-    di_stream = portento.from_pandas_distream(baboon_df, interval='t', source="Actor", target="Recipient",
-                                              instant_duration=0)
+    di_stream = portento.from_pandas_di_stream(baboon_df, interval='t', source="Actor", target="Recipient",
+                                               instant_duration=0)
     pickle.dump(di_stream, open(STREAM_PICKLE, 'wb'))
 else:
     di_stream = pickle.load(open(STREAM_PICKLE, 'rb'))
-
 
 print("\n* A directed stream, where the order of nodes is relevant:")
 print('\n'.join([str(link) for link in di_stream][:10]))
@@ -54,14 +53,14 @@ print("======")
 print('\n'.join([str(link) for link in di_stream[('NEKKE', 'MUSE')]][:10]))
 
 print("\n* A DiStream can be sliced as a stream:")
-filtered_di_stream = list(portento.filter_di_stream(di_stream,
-                                                    portento.NodeFilter(lambda node: node in ['MUSE', 'NEKKE']),
-                                                    portento.TimeFilter([pd.Interval(2600000, 7796100)])))
+filtered_di_stream = list(portento.slice_di_stream(di_stream,
+                                                   portento.NodeFilter(lambda node: node in ['MUSE', 'NEKKE']),
+                                                   portento.TimeFilter([pd.Interval(2600000, 7796100)])))
 print('\n'.join([str(link) for link in filtered_di_stream][:10]))
 print("=======")
-filtered_di_stream = list(portento.filter_di_stream(di_stream,
-                                                    portento.NodeFilter(lambda node: node in ['MUSE', 'NEKKE']),
-                                                    portento.TimeFilter([pd.Interval(2600000, 7796100)]), first='node'))
+filtered_di_stream = list(portento.slice_di_stream(di_stream,
+                                                   portento.NodeFilter(lambda node: node in ['MUSE', 'NEKKE']),
+                                                   portento.TimeFilter([pd.Interval(2600000, 7796100)]), first='node'))
 print('\n'.join([str(link) for link in filtered_di_stream][:10]))
 
 print("\n* A DiStream can be exported as pandas DataFrame:")

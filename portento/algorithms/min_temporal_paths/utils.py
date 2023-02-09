@@ -3,12 +3,12 @@ from itertools import repeat, tee
 from functools import singledispatch
 from heapq import merge
 from operator import itemgetter
-from bisect import bisect_right
 from pandas import Interval
 from sortedcontainers import SortedKeyList
 
 from portento.utils import split_in_instants, DiLink, Link
-from portento.classes import Stream, DiStream, filter_by_time, TimeFilter, StreamTree
+from portento.classes import Stream, DiStream, StreamTree
+from portento.slicing import slice_by_time, TimeFilter
 
 
 @singledispatch
@@ -35,7 +35,7 @@ def _create_edge_representation(stream_tree: StreamTree, instant_duration, time_
     instants = merge(*map(lambda x: split_order(zip(split_in_instants(x.interval, instant_duration),
                                                     repeat(({"u": x.u,
                                                              "v": x.v})))),
-                          filter_by_time(stream_tree, TimeFilter(time_bound), link_type)),
+                          slice_by_time(stream_tree, TimeFilter(time_bound), link_type)),
                      key=itemgetter(0), reverse=reverse)
 
     return instants
@@ -90,7 +90,6 @@ def get_idx_filtered_candidates(candidate_tuples, t):
             to_remove_idx.append(i)
 
     return tuple_idx, to_remove_idx
-
 
 
 def update_on_new_candidate(candidate_tuples, candidate, neg=True):

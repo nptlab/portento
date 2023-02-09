@@ -47,32 +47,32 @@ print('\n'.join([str(portento.Link(link.interval, dict(link.u)["i"], dict(link.v
 
 print("* This is useful when slicing by nodes.")
 node_filter = portento.NodeFilter(lambda x: 1799 < dict(x)["i"] < 1851)
-filtered_stream = portento.filter_stream(stream, node_filter=node_filter, first='node')
+filtered_stream = portento.slice_stream(stream, node_filter=node_filter, first='node')
 print('\n'.join([str(link) for link in filtered_stream][:10]))
 
 print("* A stream can be sliced over its temporal dimension.\n For instance, you can get"
       " a stream of snapshots in certain timestamps.")
 time_filter = portento.TimeFilter(list(
     map(lambda x: pd.Interval(x, x, 'both'), range(31200, 148100, 10000))))
-filtered_stream = list(portento.filter_stream(stream, time_filter=time_filter, first='time'))
+filtered_stream = list(portento.slice_stream(stream, time_filter=time_filter, first='time'))
 print('\n'.join([str(link) for link in filtered_stream][:10]))
 print("=====")
 print('\n'.join([str(link) for link in filtered_stream][-10:]))
 
 print("* Slices can be compounded. The order of slicing (node first or time first) does not change the result.")
 print("- NODE FIRST:")
-filtered_stream = list(portento.filter_stream(stream, node_filter=node_filter, time_filter=time_filter, first='node'))
+filtered_stream = list(portento.slice_stream(stream, node_filter=node_filter, time_filter=time_filter, first='node'))
 print('\n'.join([str(link) for link in filtered_stream][:10]))
 
 print("- TIME FIRST:")
-filtered_stream = list(portento.filter_stream(stream, node_filter=node_filter, time_filter=time_filter, first='time'))
+filtered_stream = list(portento.slice_stream(stream, node_filter=node_filter, time_filter=time_filter, first='time'))
 print('\n'.join([str(link) for link in filtered_stream][:10]))
 
 print("* These are all the classes represented in the dataset:")
 classes = sorted(school_df.C_i.unique())
 print(classes)
 print("* You may want to create many slices of the stream with the same time slice and different node slice:")
-partial_filter = partial(portento.filter_stream,
+partial_filter = partial(portento.slice_stream,
                          stream=stream,
                          time_filter=portento.TimeFilter([pd.Interval(31200, 61200, 'both')]),
                          first='node')

@@ -3,7 +3,7 @@ from portento.utils import *
 
 @dataclass
 class StreamTreeNode(IntervalTreeNode):
-    u: Hashable = field(default=None, compare=True)  # TODO ask if nodes must be comparable
+    u: Hashable = field(default=None, compare=True)
     v: Hashable = field(default=None, compare=True)
 
     def __post_init__(self):
@@ -23,7 +23,7 @@ class StreamTreeNode(IntervalTreeNode):
 
     @property
     def length(self):
-        raise NotImplementedError("This metric has no meaning in this data structure.")  # TODO if you need...
+        raise NotImplementedError("This metric has no meaning in this data structure.")
 
     def is_left(self):
         return super().is_left() and \

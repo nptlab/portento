@@ -104,9 +104,9 @@ print(list(stream[5000]))
 
 print("\n* This kind of data structure offers the possibility to define node-based slices:")
 nodes = list(map(lambda x: int64(x), [9, 31, 37, 59, 65]))
-links = list(portento.filter_stream(stream,
-                                    node_filter=portento.NodeFilter(lambda x: x in nodes),
-                                    first='time'))
+links = list(portento.slice_stream(stream,
+                                   node_filter=portento.NodeFilter(lambda x: x in nodes),
+                                   first='time'))
 shuffle(links)
 sliced_stream = portento.Stream(links)
 print(list(stream[59])[:10])

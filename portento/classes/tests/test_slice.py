@@ -3,7 +3,7 @@ from pandas import Interval
 from itertools import combinations, chain
 
 from portento import Stream, Link, \
-    filter_stream, filter_by_time, filter_by_nodes, \
+    slice_stream, slice_by_time, slice_by_nodes, \
     NoFilter, TimeFilter, NodeFilter
 
 
@@ -46,17 +46,17 @@ class TestFilter:
     ])
     def test_time_filter(self, stream, stream_2, time_filter):
         for s in [stream, stream_2]:
-            assert [i for i in filter_by_time(s.tree_view, time_filter)] == \
-                   [i for i in filter_stream(s, NoFilter(), time_filter, 'time')] == \
-                   [i for i in filter_stream(s, NoFilter(), time_filter, 'node')]
+            assert [i for i in slice_by_time(s.tree_view, time_filter)] == \
+                   [i for i in slice_stream(s, NoFilter(), time_filter, 'time')] == \
+                   [i for i in slice_stream(s, NoFilter(), time_filter, 'node')]
 
     def test_node_filter(self, stream, stream_2):
         for s in [stream, stream_2]:
             for three_nodes in combinations(s.nodes, 3):
                 node_filter = NodeFilter(lambda x: x in three_nodes)
-                assert [i for i in filter_by_nodes(s.dict_view, node_filter)] == \
-                       [i for i in filter_stream(s, node_filter, NoFilter(), 'time')] == \
-                       [i for i in filter_stream(s, node_filter, NoFilter(), 'node')]
+                assert [i for i in slice_by_nodes(s.dict_view, node_filter)] == \
+                       [i for i in slice_stream(s, node_filter, NoFilter(), 'time')] == \
+                       [i for i in slice_stream(s, node_filter, NoFilter(), 'node')]
 
     @pytest.mark.parametrize('time_filter', [
         TimeFilter([Interval(2.5, 4.5)]),
@@ -73,5 +73,5 @@ class TestFilter:
             iterables = chain.from_iterable(iterables)
             for bunch_nodes in iterables:
                 node_filter = NodeFilter(lambda x: x in bunch_nodes)
-                assert [i for i in filter_stream(s, node_filter, time_filter, 'time')] == \
-                       [i for i in filter_stream(s, node_filter, time_filter, 'node')]
+                assert [i for i in slice_stream(s, node_filter, time_filter, 'time')] == \
+                       [i for i in slice_stream(s, node_filter, time_filter, 'node')]

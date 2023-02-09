@@ -108,7 +108,7 @@ class NodeFilter(Filter):
         return self._filter(node)
 
 
-def filter_by_time(stream_tree: StreamTree, time_filter: Union[NoFilter, TimeFilter], link_type=Link):
+def slice_by_time(stream_tree: StreamTree, time_filter: Union[NoFilter, TimeFilter], link_type=Link):
     if stream_tree.root:
         return iter(SortedList(_filter_node_by_time(stream_tree.root, time_filter, link_type)))
     else:
@@ -128,15 +128,15 @@ def _filter_node_by_time(node: Union[StreamTreeNode, IntervalTreeNode], time_fil
             yield from _filter_node_by_time(node.right, time_filter, link_type)
 
 
-def filter_by_nodes(stream_dict: StreamDict, node_filter: Union[NoFilter, NodeFilter]):
+def slice_by_nodes(stream_dict: StreamDict, node_filter: Union[NoFilter, NodeFilter]):
     yield from merge(*(stream for u, links in stream_dict.edges.items() if node_filter(u)
                        for v, stream in links.items() if node_filter(v)))
 
 
-def filter_stream(stream: Stream,
-                  node_filter: Union[NoFilter, NodeFilter] = NoFilter(),
-                  time_filter: Union[NoFilter, TimeFilter] = NoFilter(),
-                  first='time'):
+def slice_stream(stream: Stream,
+                 node_filter: Union[NoFilter, NodeFilter] = NoFilter(),
+                 time_filter: Union[NoFilter, TimeFilter] = NoFilter(),
+                 first='time'):
     """A compounded slice over nodes and time.
     Function that returns an iterable over Links that respect both the node and the time filter.
 
@@ -155,13 +155,13 @@ def filter_stream(stream: Stream,
     -------
     Iterable[Link] : An iterable over the links that respect all filters.
     """
-    return _filter(stream, Link, node_filter, time_filter, first)
+    return _slice(stream, Link, node_filter, time_filter, first)
 
 
-def filter_di_stream(stream: DiStream,
-                     node_filter: Union[NoFilter, NodeFilter] = NoFilter(),
-                     time_filter: Union[NoFilter, TimeFilter] = NoFilter(),
-                     first='time'):
+def slice_di_stream(stream: DiStream,
+                    node_filter: Union[NoFilter, NodeFilter] = NoFilter(),
+                    time_filter: Union[NoFilter, TimeFilter] = NoFilter(),
+                    first='time'):
     """A compounded slice over nodes and time.
         Function that returns an iterable over Links that respect both the node and the time filter.
 
@@ -180,21 +180,21 @@ def filter_di_stream(stream: DiStream,
         -------
         Iterable[DiLink] : An iterable over the links that respect all filters.
     """
-    return _filter(stream, DiLink, node_filter, time_filter, first)
+    return _slice(stream, DiLink, node_filter, time_filter, first)
 
 
-def _filter(stream: Union[Stream, DiStream],
-            link_type: Union[Link, DiLink],
-            node_filter: Union[NoFilter, NodeFilter] = NoFilter(),
-            time_filter: Union[NoFilter, TimeFilter] = NoFilter(),
-            first='time'):
+def _slice(stream: Union[Stream, DiStream],
+           link_type: Union[Link, DiLink],
+           node_filter: Union[NoFilter, NodeFilter] = NoFilter(),
+           time_filter: Union[NoFilter, TimeFilter] = NoFilter(),
+           first='time'):
     if first == 'time':
         yield from filter(lambda l: node_filter(l.u) and node_filter(l.v),
-                          filter_by_time(stream.tree_view, time_filter, link_type))
+                          slice_by_time(stream.tree_view, time_filter, link_type))
 
     elif first == 'node':
         yield from merge(*(map(lambda x: link_type(*x),
-                               zip(filter_by_time(links.interval_tree, time_filter), repeat(u), repeat(v)))
+                               zip(slice_by_time(links.interval_tree, time_filter), repeat(u), repeat(v)))
                            for u, adj in stream.edges.items() if node_filter(u)
                            for v, links in adj.items() if node_filter(v)
                            ))

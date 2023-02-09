@@ -17,13 +17,11 @@ from more_itertools import flatten, unzip
 
 from portento.utils import IntervalTree, split_in_instants
 from .stream import Stream, DiStream
-from .filters import filter_by_time, TimeFilter
+from .slice import slice_by_time, TimeFilter
 
 pair_permutations = partial(permutations, r=2)
 pair_combinations = partial(combinations, r=2)
 
-
-# TODO implement functional interface for non-modifying methods of Stream
 
 def V(stream: Stream):
     """The set of nodes
@@ -47,7 +45,7 @@ def V_t(stream: Stream, t: pd.Interval):
         flatten(
             list(
                 map(lambda link: [link.u, link.v],
-                    filter_by_time(stream.tree_view, TimeFilter([t]))))))
+                    slice_by_time(stream.tree_view, TimeFilter([t]))))))
 
 
 def card_V_t(stream: Stream, t: pd.Interval):
@@ -86,7 +84,7 @@ def E_t(stream: Stream, t: pd.Interval):
     return set(
         list(
             map(lambda link: (link.u, link.v),
-                filter_by_time(stream.tree_view, TimeFilter([t])))))
+                slice_by_time(stream.tree_view, TimeFilter([t])))))
 
 
 def card_E_t(stream: Stream, t: pd.Interval):

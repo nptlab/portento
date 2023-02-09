@@ -36,7 +36,6 @@ def links_2():
 
 class TestStreamDict:
 
-    # TODO parametrize with fixtures
     def test_iter(self, links, links_2):
         assert [link for link in StreamDict(links)] == sorted(links)
         assert [link for link in StreamDict(links_2)] == sorted(links_2)

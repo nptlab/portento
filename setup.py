@@ -39,6 +39,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/nptlab/portento',
-    version='0.1.0',  # TODO version 1 at publish
+    version='1.0.0',
     zip_safe=False,
 )

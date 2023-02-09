@@ -5,7 +5,7 @@
 import pytest
 
 
-from portento import portento
+import portento
 
 
 @pytest.fixture

@@ -12,8 +12,9 @@ from os import path
 
 import pandas as pd
 import pickle
-import portento.utils
 from functools import partial
+
+import portento
 
 DATA_DIR = path.join('sociopatterns', 'data')
 CSV_DIR = 'csv'

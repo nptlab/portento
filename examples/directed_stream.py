@@ -1,7 +1,7 @@
 from os import path
 import pandas as pd
-from numpy import float64
 import pickle
+
 import portento
 
 DATA_DIR = path.join('sociopatterns', 'data')

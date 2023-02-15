@@ -106,3 +106,6 @@ ENV/
 .idea/
 
 performance/stream_pickle
+performance/add_performance_res
+performance/slice_performance_res
+performance/path_performance_res

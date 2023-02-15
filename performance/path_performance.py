@@ -33,7 +33,7 @@ def performance_path(seed, n_nodes, perc_mean_int_len):
                 performances.append(Timer(cmd, perf_setup).timeit(CMD_REP_PATH) / CMD_REP_PATH)
                 print("done:", cmd)
 
-            df = pd.DataFrame(performances, columns=[name])
+            df = create_df(n_nodes, perc_mean_int_len, name, performances)
             print(df)
             dfs.append(df)
 
@@ -51,3 +51,4 @@ if __name__ == "__main__":
     # perc_mean_int_len"""
 
     performance_path(1, 100, 0.1)
+    print(load(open('path_performance_res/stream-s_1', 'rb')))

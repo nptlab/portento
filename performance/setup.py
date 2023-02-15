@@ -20,11 +20,12 @@ SETUP_SLICE = "; ".join(['from pickle import load',
                          'from pandas import Interval'])
 
 PATH_COMMAND = ["earliest_arrival_time(stream, node)",
+                # "fastest_path_duration_multipass(stream, node)",
                 "fastest_path_duration(stream, node)",
                 "latest_departure_time(stream, node)",
                 "shortest_path_distance(stream, node)"]
 PATH_NAMES = ["earliest_arrival_time",
-              "fastest_path_duration_multipass",
+              # "fastest_path_duration_multipass",
               "fastest_path_duration",
               "latest_departure_time",
               "shortest_path_distance"]

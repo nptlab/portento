@@ -55,7 +55,7 @@ def performance_add(seed, n_nodes, perc_mean_int_len):
         dump(df, open(filename_performance, "wb"))
 
 
-def merge_results(n_nodes, perc_mean_int_len):
+def merge_results(n_nodes, perc_mean_int_len, final=False):
     desc_str = str_nodes_perc(n_nodes, perc_mean_int_len)
     if not path.exists(ADD_PERFORMANCE_PATH):
         raise Exception("Performance evaluations missing!")
@@ -64,7 +64,7 @@ def merge_results(n_nodes, perc_mean_int_len):
 
     used = []
     for eval_file in listdir(ADD_PERFORMANCE_PATH):
-        if desc_str in eval_file:
+        if desc_str in eval_file or final:
             filepath = path.join(ADD_PERFORMANCE_PATH, eval_file)
             df = pd.concat([df, load(open(filepath, 'rb'))], axis=1)
             used.append(filepath)
@@ -79,21 +79,20 @@ def merge_results(n_nodes, perc_mean_int_len):
 
 
 if __name__ == "__main__":
-    if not path.exists(STREAM_PICKLE_PATH):
+    """if not path.exists(STREAM_PICKLE_PATH):
         makedirs(STREAM_PICKLE_PATH)
 
     if not path.exists(ADD_PERFORMANCE_PATH):
         makedirs(ADD_PERFORMANCE_PATH)
 
-    n_run = range(TEST_REP * len(N_NODES) * len(PERC_MEAN_INT_LEN))  # a different seed for each combination
-    combos = product(range(TEST_REP), N_NODES, PERC_MEAN_INT_LEN)  # n, n_nodes, perc_mean_int_len
-    combos = [(n_run[i], n_nodes, perc) for i, (_, n_nodes, perc) in enumerate(combos)]  # seed, n_nodes,
-    # perc_mean_int_len
     with Pool() as pool:
         pool.starmap(performance_add, combos)
 
-    combos = set(map(lambda x: x[1:], combos))
+    agg_combos = set(map(lambda x: x[1:], combos))
     with Pool() as pool:
-        pool.starmap(merge_results, combos)
+        pool.starmap(merge_results, agg_combos)"""
 
-    print(merge_results(0, 0))
+    # print(merge_results(0, 0, True))
+    df = load(open('add_performance_res/stream-n_0-p_0', 'rb'))
+    df = df.applymap(lambda x: x * UNIT_MEASURE)
+    print(df)

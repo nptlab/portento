@@ -1,9 +1,10 @@
 import random
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 from os import makedirs, listdir, remove
 from pickle import load, dump
 from itertools import product
 from timeit import Timer
+from more_itertools import chunked
 
 import pandas
 
@@ -47,25 +48,54 @@ def performance_slice(seed, n_nodes, perc_mean_int_len):
         dump(df, open(filename_performance, 'wb'))
 
 
+def merge_results(*args):
+    range_files = list(args)
+    head = range_files[0]
+    used = []
+
+    def load_track(fp):
+        used.append(fp)
+        print(fp)
+        return load(open(fp, 'rb'))
+
+    res = pd.concat((load_track(path.join(SLICE_PERFORMANCE_PATH, f"stream-s_{s}")) for s in range_files), axis=0)
+    dump(res, open(path.join(SLICE_PERFORMANCE_PATH, f"stream-s_{head}_1"), 'wb'))
+
+    for eval_file in used:
+        remove(eval_file)
+
+
 if __name__ == "__main__":
-    if not path.exists(STREAM_PICKLE_PATH):
+    """if not path.exists(STREAM_PICKLE_PATH):
         raise Exception("Error: create streams before. Run add_performance.main")
 
     if not path.exists(SLICE_PERFORMANCE_PATH):
         makedirs(SLICE_PERFORMANCE_PATH)
 
-    n_run = range(TEST_REP * len(N_NODES) * len(PERC_MEAN_INT_LEN))  # a different seed for each combination
-    combos = product(range(TEST_REP), N_NODES, PERC_MEAN_INT_LEN)  # n, n_nodes, perc_mean_int_len
-    combos = [(n_run[i], n_nodes, perc) for i, (_, n_nodes, perc) in enumerate(combos)]  # seed, n_nodes,
-    # perc_mean_int_len
     with Pool() as pool:
         pool.starmap(performance_slice, combos)
 
-    """used = []
-    for eval_file in listdir(SLICE_PERFORMANCE_PATH):
-        filepath = path.join(SLICE_PERFORMANCE_PATH, eval_file)
-        df = pd.concat([df, load(open(filepath, 'rb'))], axis=1)
-        used.append(filepath)
-    dump(df, open(filepath, 'wb'))
-    for eval_file in used:
-        remove(eval_file)"""
+    n_evals = len(listdir(SLICE_PERFORMANCE_PATH))
+    chunked_evals = chunked(range(n_evals), n_evals // cpu_count())
+
+    with Pool() as pool:
+        pool.starmap(merge_results, chunked_evals)"""
+
+    """df = pd.concat(map(lambda x: load(open(path.join(SLICE_PERFORMANCE_PATH, x), 'rb')),
+                       listdir(SLICE_PERFORMANCE_PATH)))
+
+    for x in listdir(SLICE_PERFORMANCE_PATH):
+        remove(path.join(SLICE_PERFORMANCE_PATH, x))"""
+
+    df = load(open(path.join(SLICE_PERFORMANCE_PATH, "stream-tot"), 'rb'))
+
+    for n, i in product(PERC_NODES, PERC_INTERVAL):
+        df[(n, i, 'diff')] = df[(n, i, 'time')] - df[(n, i, 'node')]
+
+    df = df.drop(['node', 'time'], axis=1, level=2)
+    df = df.droplevel(level=2, axis=1)
+    df = df.quantile([0, .25, .5, .75, 1], axis=0)
+
+    print(df[25])
+    print(df[50])
+    print(df[75])

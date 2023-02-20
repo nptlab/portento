@@ -1,5 +1,5 @@
 from os import path
-from itertools import accumulate, repeat
+from itertools import accumulate, repeat, product
 from operator import mul
 from pandas import Interval
 
@@ -37,12 +37,12 @@ SETUP_PATH = "; ".join(['from pickle import load',
 
 CMD_REP = 100
 TEST_REP = 100
-CMD_REP_PATH = CMD_REP // 10
+CMD_REP_PATH = CMD_REP // 100
 
 TEST_REP_ADD = TEST_REP  # repetition of the same test. DEFAULT: 100
 MAX_LINKS = 10000  # max number of links. DEFAULT: 10000
 MEASUREMENT_MILESTONE = 100  # each n links, a test of performance is made. DEFAULT: 100
-TIME_BOUND = Interval(0, 100000, 'both')  # time boundary of the stream. DEFAULT: Interval(0, 99999, 'both')
+TIME_BOUND = Interval(0, 100000, 'both')  # time boundary of the stream. DEFAULT: Interval(0, 100000, 'both')
 
 N_NODES = list(map(lambda x: 100 * x, [1, 5, 10, 50]))  # number of nodes in the stream.
 # DEFAULT: list(map(lambda x: 100 * x, [1, 5, 10, 50]))
@@ -57,3 +57,7 @@ PERC_INTERVAL = [25, 50, 75]
 SLICE_TYPES = ['time', 'node']
 
 N_NODES_PATH = 1
+
+n_run = range(TEST_REP * len(N_NODES) * len(PERC_MEAN_INT_LEN))  # a different seed for each combination
+combos = product(range(TEST_REP), N_NODES, PERC_MEAN_INT_LEN)  # n, n_nodes, perc_mean_int_len
+combos = [(n_run[i], n_nodes, perc) for i, (_, n_nodes, perc) in enumerate(combos)]  # seed, n_nodes,  perc_mean_int_len

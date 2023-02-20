@@ -27,14 +27,10 @@ def performance_path(seed, n_nodes, perc_mean_int_len):
         for cmd, name in zip(PATH_COMMAND, PATH_NAMES):
             performances = []
             for n in nodes_subset_n(rnd, N_NODES_PATH, nodes):
-                print("node:", n)
                 perf_setup = "; ".join([setup, f'node={n}'])
-                print("doing:", cmd)
                 performances.append(Timer(cmd, perf_setup).timeit(CMD_REP_PATH) / CMD_REP_PATH)
-                print("done:", cmd)
 
             df = create_df(n_nodes, perc_mean_int_len, name, performances)
-            print(df)
             dfs.append(df)
 
         df = pd.concat(dfs, axis=1)
@@ -45,10 +41,8 @@ if __name__ == "__main__":
     if not path.exists(PATH_PERFORMANCE_PATH):
         makedirs(PATH_PERFORMANCE_PATH)
 
-    """n_run = range(TEST_REP * len(N_NODES) * len(PERC_MEAN_INT_LEN))  # a different seed for each combination
-    combos = product(range(TEST_REP), N_NODES, PERC_MEAN_INT_LEN)  # n, n_nodes, perc_mean_int_len
-    combos = [(n_run[i], n_nodes, perc) for i, (_, n_nodes, perc) in enumerate(combos)]  # seed, n_nodes,
-    # perc_mean_int_len"""
+    """with Pool() as pool:
+        pool.starmap(performance_path, combos)
 
-    performance_path(1, 100, 0.1)
-    print(load(open('path_performance_res/stream-s_1', 'rb')))
+    print(load(open('path_performance_res/stream-s_1394', 'rb')))"""
+

@@ -6,6 +6,7 @@ from timeit import Timer
 from itertools import product
 from utils import *
 from setup import *
+import matplotlib.pyplot as plt
 
 import portento
 
@@ -95,4 +96,37 @@ if __name__ == "__main__":
     # print(merge_results(0, 0, True))
     df = load(open('add_performance_res/stream-n_0-p_0', 'rb'))
     df = df.applymap(lambda x: x * UNIT_MEASURE)
+
+    for n, i in product(N_NODES, PERC_MEAN_INT_LEN):
+        mean_col = df[(n, i)].mean(axis=1)
+        std_col = df[(n, i)].std(axis=1)
+        for c in df[(n, i)].columns:
+            df = df.drop((n, i, c), axis=1)
+        df[(n, i, "mean")] = mean_col
+
+    df = df.droplevel(2, axis=1)
+
+    # df = load(open(path.join(ADD_PERFORMANCE_PATH, "add_stats"), 'rb'))
     print(df)
+
+    """fig, [(ax1, ax2), (ax3, ax4)] = plt.subplots(2, 2)
+    plt.yscale("log")
+    df[100].plot(ax=ax1)
+    plt.yscale("log")
+    df[500].plot(ax=ax2)
+    plt.yscale("log")
+    df[1000].plot(ax=ax3)
+    plt.yscale("log")
+    df[5000].plot(ax=ax4)"""
+    fig, [(ax1, ax2), (ax3, ax4)] = plt.subplots(2, 2)
+    ax1.set_yscale("log")
+    ax2.set_yscale("log")
+    ax3.set_yscale("log")
+    ax4.set_yscale("log")
+    df[100].plot(ax=ax1)
+    df[500].plot(ax=ax2)
+    df[1000].plot(ax=ax3)
+    df[5000].plot(ax=ax4)
+    handles, labels = ax1.get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper center')
+    fig.savefig(path.join(ADD_PERFORMANCE_PATH, "add_stats"))

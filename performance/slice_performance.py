@@ -66,7 +66,7 @@ def merge_results(*args):
 
 
 if __name__ == "__main__":
-    """if not path.exists(STREAM_PICKLE_PATH):
+    if not path.exists(STREAM_PICKLE_PATH):
         raise Exception("Error: create streams before. Run add_performance.main")
 
     if not path.exists(SLICE_PERFORMANCE_PATH):
@@ -79,13 +79,13 @@ if __name__ == "__main__":
     chunked_evals = chunked(range(n_evals), n_evals // cpu_count())
 
     with Pool() as pool:
-        pool.starmap(merge_results, chunked_evals)"""
+        pool.starmap(merge_results, chunked_evals)
 
-    """df = pd.concat(map(lambda x: load(open(path.join(SLICE_PERFORMANCE_PATH, x), 'rb')),
+    df = pd.concat(map(lambda x: load(open(path.join(SLICE_PERFORMANCE_PATH, x), 'rb')),
                        listdir(SLICE_PERFORMANCE_PATH)))
 
     for x in listdir(SLICE_PERFORMANCE_PATH):
-        remove(path.join(SLICE_PERFORMANCE_PATH, x))"""
+        remove(path.join(SLICE_PERFORMANCE_PATH, x))
 
     df = load(open(path.join(SLICE_PERFORMANCE_PATH, "stream-tot"), 'rb'))
 
@@ -99,3 +99,9 @@ if __name__ == "__main__":
     print(df[25])
     print(df[50])
     print(df[75])
+
+    df = df.transpose()
+
+    print(df)
+
+    print(df.style.to_latex())

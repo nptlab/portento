@@ -1,10 +1,10 @@
 from itertools import tee
 from collections.abc import Hashable
-from typing import Optional, Iterable, Union
+from typing import Optional, Iterable
 
 from .streamtree import StreamTree, DiStreamTree
 from .streamdict import StreamDict, DiStreamDict
-from portento.utils import Link, DiLink, IntervalTree
+from portento.utils import Link, IntervalTree
 
 
 class Stream:

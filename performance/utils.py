@@ -49,3 +49,12 @@ def sub_interval(rnd, time_perc, time_interval):
     end = start + time_val
 
     return start, end
+
+
+def ax_prepare(ax, n_nodes, df):
+    ax.set_yscale("log")
+    df[n_nodes].plot(ax=ax)
+    ax.get_legend().remove()
+    ax.set_ylabel('time (ms)', fontsize=12)
+    ax.tick_params(axis='both', reset=True, which='both', left=True, labelsize='large')
+    ax.set_title(f"{n_nodes}", fontsize=12)

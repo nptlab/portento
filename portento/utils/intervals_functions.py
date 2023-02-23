@@ -1,6 +1,4 @@
-from math import floor
 import pandas as pd
-from numpy import arange, linspace
 import re
 from typing import Iterable
 from functools import reduce

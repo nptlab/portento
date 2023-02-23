@@ -1,6 +1,5 @@
 from typing import Optional, Iterable, Union
 from pandas import Interval
-from numpy import number
 from enum import Enum
 from dataclasses import dataclass, field
 from portento.utils.intervals_functions import merge_interval
@@ -24,7 +23,7 @@ class IntervalTreeNode:
     right: Optional['IntervalTreeNode'] = field(default=None, compare=False)
     color: Color = field(default=Color.RED, init=False, compare=False)
     full_interval: Interval = field(default=None, init=False, compare=False)
-    time_instants: Union[int, float, number] = field(default=None, init=False, compare=False)
+    time_instants: Union[int, float] = field(default=None, init=False, compare=False)
 
     def __post_init__(self):
         self.full_interval = self.value

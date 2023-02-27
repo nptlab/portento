@@ -3,7 +3,6 @@ from multiprocessing import Pool
 from os import makedirs, remove, listdir
 from pickle import dump, load
 from timeit import Timer
-from itertools import product
 from utils import *
 from setup import *
 import matplotlib.pyplot as plt

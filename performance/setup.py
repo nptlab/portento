@@ -24,11 +24,11 @@ PATH_COMMAND = ["earliest_arrival_time(stream, node)",
                 "fastest_path_duration(stream, node)",
                 "latest_departure_time(stream, node)",
                 "shortest_path_distance(stream, node)"]
-PATH_NAMES = ["earliest_arrival_time",
-              # "fastest_path_duration_multipass",
-              "fastest_path_duration",
-              "latest_departure_time",
-              "shortest_path_distance"]
+PATH_NAME = ["earliest_arrival_time",
+             # "fastest_path_duration_multipass",
+             "fastest_path_duration",
+             "latest_departure_time",
+             "shortest_path_distance"]
 SETUP_PATH = "; ".join(['from pickle import load',
                         'from portento.algorithms.min_temporal_paths import earliest_arrival_time, '
                         'fastest_path_duration, '
@@ -37,7 +37,7 @@ SETUP_PATH = "; ".join(['from pickle import load',
 
 CMD_REP = 100
 TEST_REP = 100
-CMD_REP_PATH = CMD_REP // 100
+CMD_REP_PATH = CMD_REP // 5
 
 TEST_REP_ADD = TEST_REP  # repetition of the same test. DEFAULT: 100
 MAX_LINKS = 10000  # max number of links. DEFAULT: 10000
@@ -56,7 +56,7 @@ PERC_NODES = [25, 50, 75]
 PERC_INTERVAL = [25, 50, 75]
 SLICE_TYPES = ['time', 'node']
 
-N_NODES_PATH = 1
+N_NODES_PATH = 20
 
 n_run = range(TEST_REP * len(N_NODES) * len(PERC_MEAN_INT_LEN))  # a different seed for each combination
 combos = product(range(TEST_REP), N_NODES, PERC_MEAN_INT_LEN)  # n, n_nodes, perc_mean_int_len

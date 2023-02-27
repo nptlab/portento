@@ -5,7 +5,7 @@ Presentation of the basic interface
 
 Presenting the basic commands to query a stream graph.
 
-Data was taken from: http://www.sociopatterns.org.
+Data was taken from: http://www.sociopatterns.org/datasets/contact-patterns-in-a-village-in-rural-malawi/
 """
 
 from os import path

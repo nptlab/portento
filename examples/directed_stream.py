@@ -1,3 +1,12 @@
+"""
+======================
+DiStream
+======================
+
+Presenting the basic usage of a directed Stream
+
+Data was taken from: http://www.sociopatterns.org/datasets/baboons-interactions/.
+"""
 from os import path
 import pandas as pd
 import pickle

@@ -5,7 +5,7 @@ Slicing
 
 Presenting commands to slice a stream graph.
 
-Data was taken from: http://www.sociopatterns.org.
+Data was taken from: http://www.sociopatterns.org/datasets/primary-school-temporal-network-data/.
 """
 
 from os import path

@@ -17,9 +17,9 @@ from functools import partial
 import portento
 
 DATA_DIR = path.join('sociopatterns', 'data')
-CSV_DIR = 'csv'
+CSV_DIR = 'malawi'
 PICKLE_DIR = 'pickled_stream'
-SCHOOL_FILE = 'primaryschool.csv.gz'
+SCHOOL_FILE = 'primaryschool.malawi.gz'
 SCHOOL_STREAM_PICKLE = 'school_stream'
 
 THIS_FILE = path.join(DATA_DIR, CSV_DIR, SCHOOL_FILE)

@@ -18,9 +18,9 @@ from random import shuffle
 import portento
 
 DATA_DIR = path.join('sociopatterns', 'data')
-CSV_DIR = 'csv'
+CSV_DIR = 'malawi'
 PICKLE_DIR = 'pickled_stream'
-MALAWI_FILE = 'tnet_malawi_pilot.csv.gz'
+MALAWI_FILE = 'tnet_malawi_pilot.malawi.gz'
 MALAWI_STREAM_PICKLE = 'malawi_stream'
 
 THIS_FILE = path.join(DATA_DIR, CSV_DIR, MALAWI_FILE)

@@ -5,7 +5,7 @@ Presentation of the basic interface
 
 Presenting the basic commands to query a stream graph.
 
-Data was taken from: http://www.sociopatterns.org.
+Data was taken from: http://www.sociopatterns.org/datasets/contact-patterns-in-a-village-in-rural-malawi/
 """
 
 from os import path
@@ -18,9 +18,9 @@ from random import shuffle
 import portento
 
 DATA_DIR = path.join('sociopatterns', 'data')
-CSV_DIR = 'csv'
+CSV_DIR = 'malawi'
 PICKLE_DIR = 'pickled_stream'
-MALAWI_FILE = 'tnet_malawi_pilot.csv.gz'
+MALAWI_FILE = 'tnet_malawi_pilot.malawi.gz'
 MALAWI_STREAM_PICKLE = 'malawi_stream'
 
 THIS_FILE = path.join(DATA_DIR, CSV_DIR, MALAWI_FILE)

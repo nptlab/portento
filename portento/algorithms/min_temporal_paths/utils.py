@@ -82,14 +82,13 @@ def get_idx_filtered_candidates(candidate_tuples, t):
     to_remove_idx = []
     tuple_idx, tuple_arrival = 0, float('-inf')
     for i, (distance, arrival) in enumerate(candidate_tuples):
-        if arrival < t:
-            if tuple_arrival < arrival:
-                tuple_arrival = arrival
-                tuple_idx = i
+        if arrival < t and tuple_arrival < arrival:
+            tuple_arrival = arrival
+            tuple_idx = i
         else:
             to_remove_idx.append(i)
 
-    return tuple_idx, to_remove_idx
+    return tuple_idx, reversed(to_remove_idx)
 
 
 def update_on_new_candidate(candidate_tuples, candidate, neg=True):

@@ -17,12 +17,12 @@ def from_csv_stream(file: str,
                     target: Union[str, List[str]] = DEFAULT_COL_NAMES[2],
                     instant_duration: Union[int, float] = 1,
                     **kwargs):
-    """Convert a csv file to a stream.
+    """Convert a malawi file to a stream.
 
     Parameters
     ----------
     file : str
-        csv file storing the stream
+        malawi file storing the stream
     interval : str
         Name of the column that stores the intervals of links
     source : str | List(str)
@@ -52,12 +52,12 @@ def from_csv_di_stream(file: str,
                        target: Union[str, List[str]] = DEFAULT_COL_NAMES[2],
                        instant_duration: Union[int, float] = 1,
                        **kwargs):
-    """Convert a csv file to a directed stream.
+    """Convert a malawi file to a directed stream.
 
     Parameters
     ----------
     file : str
-        csv file storing the directed stream
+        malawi file storing the directed stream
     interval : str
         Name of the column that stores the intervals of links
     source : str | List(str)
@@ -89,12 +89,12 @@ def to_csv_stream(file: str,
                   source: Union[str, List[str]] = DEFAULT_COL_NAMES[1],
                   target: Union[str, List[str]] = DEFAULT_COL_NAMES[2],
                   **kwargs):
-    """Convert a stream to a csv.
+    """Convert a stream to a malawi.
 
     Parameters
     ----------
     file: str
-        The output file (will be a csv)
+        The output file (will be a malawi)
     stream : Stream
         A portento Stream
     interval : str

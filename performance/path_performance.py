@@ -1,9 +1,9 @@
-from os import path, makedirs
+from os import path, makedirs, listdir
 from multiprocessing import Pool
 import pickle
 import random
 from timeit import Timer
-from itertools import repeat, chain
+from itertools import repeat, chain, takewhile
 import pandas as pd
 from setup import *
 
@@ -113,6 +113,25 @@ if __name__ == "__main__":
     kenya_nodes = zip(rnd.sample(portento.V(kenya_stream), N_NODES_PATH), repeat(KENYA_STREAM_PICKLE_FULL))
 
     with Pool() as pool:
-        pool.starmap(performance_path, [list(chain(malawi_nodes, kenya_nodes))[0]])
+        pool.starmap(performance_path, chain(malawi_nodes, kenya_nodes))
 
-    print(pickle.load(open('path_performance_res/malawi_stream-53', 'rb')))
+    kenya_df = pd.DataFrame()
+    malawi_df = pd.DataFrame()
+    for file in listdir(PATH_PERFORMANCE_PATH):
+        if 'kenya' in file:
+            kenya_df = pd.concat([kenya_df, pickle.load(open(path.join(PATH_PERFORMANCE_PATH, file), 'rb'))])
+        elif 'malawi' in file:
+            malawi_df = pd.concat([malawi_df, pickle.load(open(path.join(PATH_PERFORMANCE_PATH, file), 'rb'))])
+        else:
+            pass
+
+    kenya_df = kenya_df.quantile([0, .25, .5, .75, 1], axis=0)
+    kenya_df = kenya_df.droplevel(level=0, axis=1)
+    kenya_df = kenya_df.transpose()
+    pickle.dump(kenya_df, open(path.join(PATH_PERFORMANCE_PATH, 'final_0'), 'wb'))
+
+    malawi_df = malawi_df.quantile([0, .25, .5, .75, 1], axis=0)
+    malawi_df = malawi_df.droplevel(level=0, axis=1)
+    malawi_df = malawi_df.transpose()
+    pickle.dump(malawi_df, open(path.join(PATH_PERFORMANCE_PATH, 'final_1'), 'wb'))
+

@@ -16,8 +16,8 @@ from itertools import chain, combinations, permutations
 from more_itertools import flatten, unzip
 
 from portento.utils import IntervalTree, split_in_instants
-from portento.classes.stream import Stream, DiStream
-from portento.slicing.slice import slice_by_time, TimeFilter
+from portento.classes import Stream, DiStream
+from portento.slicing import slice_by_time, TimeFilter
 
 pair_permutations = partial(permutations, r=2)
 pair_combinations = partial(combinations, r=2)

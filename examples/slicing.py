@@ -5,20 +5,21 @@ Slicing
 
 Presenting commands to slice a stream graph.
 
-Data was taken from: http://www.sociopatterns.org.
+Data was taken from: http://www.sociopatterns.org/datasets/primary-school-temporal-network-data/.
 """
 
 from os import path
 
 import pandas as pd
 import pickle
-import portento.utils
 from functools import partial
 
+import portento
+
 DATA_DIR = path.join('sociopatterns', 'data')
-CSV_DIR = 'csv'
+CSV_DIR = 'malawi'
 PICKLE_DIR = 'pickled_stream'
-SCHOOL_FILE = 'primaryschool.csv.gz'
+SCHOOL_FILE = 'primaryschool.malawi.gz'
 SCHOOL_STREAM_PICKLE = 'school_stream'
 
 THIS_FILE = path.join(DATA_DIR, CSV_DIR, SCHOOL_FILE)

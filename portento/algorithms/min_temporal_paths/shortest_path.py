@@ -1,7 +1,6 @@
 from collections.abc import Hashable
-from numpy import argmax
 from pandas import Interval
-from operator import itemgetter, le
+from operator import itemgetter
 from sortedcontainers import SortedKeyList
 from portento.classes import Stream
 from portento.utils import get_start_end
